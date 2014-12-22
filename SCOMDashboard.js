@@ -69,6 +69,7 @@ app.get('/favicon.ico', function (req, res){
 //http://172.18.110.108:3000/originhealth/xml/json
 //localhost:3000/originhealth
 //"C:\Program Files\nodejs\node" SCOMDashBoard.js
+//L60001073JRIN:3000/originhealth
 
 app.get('/:id/:idRespType?/:respType?', function (req, res) {
 	if (!req.params.id)

@@ -5,11 +5,6 @@
 Wish List
 
 	set status
-	- see where orgin is pointing and update accordingly, on load only
-	- set node.js service color appropriately
-	- install SCOMDashBoard.js in dev, change html accordingly
-	- on load get status of all nodes and display appropriate color
-		-- research xml to json transform
 	- for scom and scom2 put nodes under it for
 		--services and color status
 		--svn
@@ -21,10 +16,17 @@ Wish List
 		--svn
 		--code info
 		--aeminfo build number
-	-  on load make sure its looks pretty, i.e. arrange nodes appropriated
 	-  do the following for other apache server and services
 	-  figure out rules for apache health ? display appropriate color
-	-  add to git github project
+
+
+	done
+		X install SCOMDashBoard.js in dev, change html accordingly
+		x set node.js service color appropriately
+		x see where orgin is pointing and update accordingly, on load only
+		x  add to git github project
+		x on load get status of all nodes and display appropriate color
+			x research xml to json transform
 
 
 		Currently using
@@ -120,8 +122,8 @@ var cy = cytoscape({
 
   elements: {
     nodes: [
-      { data: { id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' }},
-      { data: { id: 'originhealth', name: 'origin' }},
+      { data: { id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' }, position: { x: 500, y: 100 } },
+      { data: { id: 'originhealth', name: 'origin' }, position: { x: 100, y: 100 } },
 
       { data: { id: 'soa-110', name: 'soa-110'} },
       { data: { id: 'soa-110-health', name: 'apache health',  parent: 'soa-110'}},
@@ -140,12 +142,8 @@ var cy = cytoscape({
 
       { data: { id: 'soa-109-scom2', name: 'scom2', parent: 'soa-109' } },
       { data: { id: 'soa-109-scom2-health', name: 'health',  parent: 'soa-109-scom2' } }
-    ],
-    edges: [
-      { data: { id: 'origin-soa-110', source: 'originhealth', target: 'soa-110-scom' } }
     ]
   },
-
   layout: {
     name: 'cose',
     padding: 5
@@ -154,30 +152,30 @@ var cy = cytoscape({
 
 
 var scom_urls = {
-	'scomdashboard': 		{url:'http://localhost:3000/originhealth',health:'grey'},
-	'originhealth': 		{url:'http://localhost:3000/originhealth',health:'grey'},
-	'soa-110':				{url:'',health:'grey'},
-	'soa-110-health':		{url:'http://scom-110.prod.subaru.com/server-status',health:'grey'},
-	'soa-110-scom':			{url:'',health:'grey'},
-	'soa-110-scom-health':	{url:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-110-scom2':		{url:'',health:'grey'},
-	'soa-110-scom2-health':	{url:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-109':				{url:'',health:'grey'},
-	'soa-109-health':		{url:'http://scom-109.prod.subaru.com/server-status',health:'grey'},
-	'soa-109-scom':			{url:'',health:'grey'},
-	'soa-109-scom-health':	{url:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-109-scom2':		{url:'',health:'grey'},
-	'soa-109-scom2-health':	{url:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey'}
+	'scomdashboard': 		{url:'http://L60001073JRIN:3000/originhealth',xmlurl:'', health:'grey',callHealthService:false},
+	'originhealth': 		{url:'http://L60001073JRIN:3000/originhealth',xmlurl:'http://origin-www.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-110':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-health':		{url:'http://L60001073JRIN:3000/soa-110-health',xmlurl:'http://scom-110.prod.subaru.com/server-status',health:'grey',callHealthService:false},
+	'soa-110-scom':			{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-scom-health':	{url:'http://L60001073JRIN:3000/soa-110-scom-health',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-110-scom2':		{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-scom2-health':	{url:'http://L60001073JRIN:3000/soa-110-scom2-health',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-109':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-health':		{url:'http://L60001073JRIN:3000/soa-109-health',xmlurl:'http://scom-109.prod.subaru.com/server-status',health:'grey',callHealthService:false},
+	'soa-109-scom':			{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-scom-health':	{url:'http://L60001073JRIN:3000/soa-109-scom-health',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-109-scom2':		{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-scom2-health':	{url:'http://L60001073JRIN:3000/soa-109-scom2-health',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true}
 	};
 
 
 //on click
 cy.$('#originhealth,#soa-110-scom-health,#soa-110-scom2-health,#soa-109-scom-health,#soa-109-scom2-health,#soa-110-health,#soa-109-health').on('tap', function(e){
  	var ele = e.cyTarget;
- 	logMessage('clicked ' + ele.id())
- 	logMessage("loading " + scom_urls[ele.id()].url)
-	scom_urls[ele.id()].window = window.open(scom_urls[ele.id()].url);
- 	logMessage("loaded " + scom_urls[ele.id()].url)
+ 	//logMessage('clicked ' + ele.id())
+ 	logMessage("loading " + scom_urls[ele.id()].xmlurl)
+	scom_urls[ele.id()].window = window.open(scom_urls[ele.id()].xmlurl);
+ 	logMessage("loaded " + scom_urls[ele.id()].xmlurl)
 });
 
 var logMessage = function(message)
@@ -187,9 +185,26 @@ var logMessage = function(message)
 }
 
 
-var setHealthOfNode = function(nodeId)
+var setHealthOfNode = function(nodeId,healthObj)
 {
   logMessage(nodeId+": changed health to " + scom_urls[nodeId].health)
+
+  if (healthObj)
+  {
+  		//update where origin is pointing to
+		if (nodeId == 'originhealth')
+		{
+			//healthObj.status.host  'soa-110'
+			//healthObj.status.container = 'scom'
+			var newLink = healthObj.status.host+'-'+healthObj.status.container;
+
+			cy.remove(cy.$("#origin-link"));
+			cy.add([
+			  { group: "edges", data: { id: 'origin-link', source: 'originhealth', target: newLink} }
+			]);
+		}
+		scom_urls[nodeId].health = healthObj.status.health;
+  }
 
   //@todo should be rewritten, not pretty
   if (scom_urls[nodeId].health == 'red')
@@ -221,49 +236,45 @@ var setHealthOfNode = function(nodeId)
 
 
 cy.nodes().forEach(function( ele ){
-  logMessage(ele.id());
-  setHealthOfNode(ele.id());
 
-  //set orgin health on load and directed graph pointer
-  if (ele.id() == 'originhealth')
-  {
-	logMessage(ele.id()+": getting health ...");
+    //skip nodes we don't want to make health checks on
+	setHealthOfNode(ele.id(),null);
+    if (scom_urls[ele.id()].callHealthService)
+	{
+		logMessage(ele.id()+": getting health status...");
 
-	$.ajax({
-	  type: 'GET',
-      url: scom_urls[ele.id()].url,
-	  contentType: 'text/plain',
+		$.ajax({
+		  type: 'GET',
+		  url: scom_urls[ele.id()].url,
+		  contentType: 'text/plain',
 	  dataType: 'json',
-	  success: function(data)
-	  {
-	  	scom_urls["scomdashboard"].health = 'green';
-	  	setHealthOfNode("scomdashboard");
+		  success: function(data)
+		  {
+			scom_urls["scomdashboard"].health = 'green';
+			setHealthOfNode("scomdashboard",null);
 
-	  	scom_urls[ele.id()].health = 'green';
-	  	setHealthOfNode(ele.id());
-		if (data)
-	  		logMessage(JSON.stringify(data));
-	  	else
-	  		logMessage(ele.id()+": unable to parse json response");
-	  },
-	  error: function (xhr, ajaxOptions, thrownError) {
-	  	 scom_urls["scomdashboard"].health = 'red';
-	  	 setHealthOfNode("scomdashboard");
-	     logMessage(ele.id()+":"+xhr.status);
-      }
-	});
+			if (data){
+				setHealthOfNode(ele.id(),data);
+			//	logMessage(JSON.stringify(data));
+			}else {
+				logMessage(ele.id()+": unable to parse json response");
+			}
+		  },
+		  error: function (xhr, ajaxOptions, thrownError) {
+			 //assume on any error scomdashboard service is down
+			 scom_urls["scomdashboard"].health = 'red';
+			 setHealthOfNode("scomdashboard",null);
 
-
-  }
-
+			 logMessage(ele.id()+":"+xhr.status);
+		  }
+		});
+	}
 });
-
-
 
 
 }); // on dom ready
 
 </script>
-Status Message: <input id="status_message" type="text" size="60" disabled><br>
+<div>Status Message: <input id="status_message" type="text" size="60" disabled><br></div>
 </body>
 </html>
