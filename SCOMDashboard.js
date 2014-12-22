@@ -16,7 +16,7 @@ var winston = new (winston.Logger)({
 });
 
 var scom_urls = {
-	'originhealth': 		{url:'http://www.subaru.com/health/report.xml',health:'grey'},
+	'originhealth': 		{url:'http://origin-www.subaru.com/health/report.xml',health:'grey'},
 	'soa-110':				{url:'',health:'grey'},
 	'soa-110-health':		{url:'http://scom-110.prod.subaru.com/server-status',health:'grey'},
 	'soa-110-scom':			{url:'',health:'grey'},
@@ -43,24 +43,33 @@ var server = http.createServer(app);
  * Routes
  */
 
-app.all('/', function(req, res, next) {
+app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.setHeader("Content-Type", "text/json");
+  winston.info('in app.all');
   next();
  });
 
 app.get('/', function (req, res) {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end([
-    ' SCOMDashboard id=[id] idRespType=[xml]  reponsetype=[json]'
-    ].join(''));
+    res.end([' SCOMDashboard id=[id] idRespType=[xml]  reponsetype=[json]'].join(''));
     winston.info('in root request');
+});
+
+
+app.get('/favicon.ico', function (req, res){
+	res.writeHead(200, {'Content-Type': 'image/x-icon'} );
+	res.end();
+    winston.info('favicon requested');
 });
 
 //http://debugmode.net/2014/03/31/understanding-routing-of-expressjs-in-node-js/
 //localhost:3000/originhealth/xml/json
 //http://172.18.110.108:3000/originhealth/xml/json
 //localhost:3000/originhealth
+//"C:\Program Files\nodejs\node" SCOMDashBoard.js
+
 app.get('/:id/:idRespType?/:respType?', function (req, res) {
 	if (!req.params.id)
 	{

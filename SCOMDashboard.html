@@ -26,14 +26,6 @@ Wish List
 	-  figure out rules for apache health ? display appropriate color
 	-  add to git github project
 
-	Done
-	x add scomdashbaord service node.
-	x display graph of scom and its components
-	x clicking a node will load its associated link
-	x add html status bar text and update status message on clicks and helath checks
-
-
-
 
 		Currently using
 		http://js.cytoscape.org/#demos
@@ -48,7 +40,6 @@ Wish List
 
 
 		Subarau Links
-		origin-www.subaru.com
 		http://origin-www.subaru.com/health/report.xml
 
 		Health
@@ -60,23 +51,6 @@ Wish List
 		Apache status
 		http://scom-110.prod.subaru.com/server-status
 
-
-
-.health_green {
-    color: 'green';
-    background: 'green';
-    background-color: 'green';
-}
-
-.health_red {
-    color: red;
-    background: red;
-    background-color: red;
-}
-
-	//cy.$('#originhealth').addClass('health_green');
-
-
 -->
 <head>
 <style>
@@ -85,8 +59,8 @@ body {
 }
 
 #cy {
-  height: 100%;
-  width: 100%;
+  height: 90%;
+  width: 90%;
   position: absolute;
   left: 0;
   top: 0;
@@ -178,9 +152,10 @@ var cy = cytoscape({
   }
 });
 
+
 var scom_urls = {
-	'scomdashboard': 		{url:'localhost:3000/originhealth',health:'grey'},
-	'originhealth': 		{url:'http://www.subaru.com/health/report.xml',health:'grey'},
+	'scomdashboard': 		{url:'http://localhost:3000/originhealth',health:'grey'},
+	'originhealth': 		{url:'http://localhost:3000/originhealth',health:'grey'},
 	'soa-110':				{url:'',health:'grey'},
 	'soa-110-health':		{url:'http://scom-110.prod.subaru.com/server-status',health:'grey'},
 	'soa-110-scom':			{url:'',health:'grey'},
@@ -210,6 +185,7 @@ var logMessage = function(message)
  	$("#status_message").val(message);
  	console.log(message);
 }
+
 
 var setHealthOfNode = function(nodeId)
 {
@@ -242,75 +218,44 @@ var setHealthOfNode = function(nodeId)
   }
 }
 
+
+
 cy.nodes().forEach(function( ele ){
-  console.log( ele.id() );
+  logMessage(ele.id());
   setHealthOfNode(ele.id());
-  if (ele.id() == 'soa-110-health')
+
+  //set orgin health on load and directed graph pointer
+  if (ele.id() == 'originhealth')
   {
-  	//var mywindow = window.open(scom_urls[ele.id()].url, "NewWindow",  "status = no, toolbar = no, location = no, left = 9999, top = 9999, width = 10, height = 10");
-
-	scom_urls[ele.id()].window = window.open(scom_urls[ele.id()].url);
-	if (typeof scom_urls[ele.id()].window != 'undefined')
-	{
-	  	var test = scom_urls[ele.id()].window.document.getElementsByTagName('body')[0].innerHTML;
-		console.log("test="+test );
-	}
-
-/*
-	//http://www.leggetter.co.uk/2010/03/12/making-cross-domain-javascript-requests-using-xmlhttprequest-or-xdomainrequest.html
-	var invocation = new XMLHttpRequest();
-
-	function handler(evtXHR) {
-		if (invocation.readyState == 4)
-		{
-		  if (invocation.status == 200) {
-			  var data = invocation.responseText;
-			  var jsonHealth = xmlToJson(data);
-			  var jsonText = JSON.stringify(jsonHealth);
-			  alert( "success:"+jsonText);
-		  }
-		  else {
-			alert("Invocation Errors Occured");
-		  }
-		}
-	  }
-
-	invocation.open('GET', scom_urls[ele.id()].url, true);
-	invocation.onreadystatechange = handler;
-    invocation.send();
-
-
-
-try {
-	$.getJSON(scom_urls[ele.id()].url+"?callback=?", function(result){
-	   alert(result);
-	});
-}
-catch(err) {
-	   alert("exception");
-}
+	logMessage(ele.id()+": getting health ...");
 
 	$.ajax({
-	  type: "GET",
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      crossDomain: true,
+	  type: 'GET',
       url: scom_urls[ele.id()].url,
-	  dataType: 'text',
+	  contentType: 'text/plain',
+	  dataType: 'json',
 	  success: function(data)
 	  {
-	  	var jsonHealth = xmlToJson(data);
-	  	var jsonText = JSON.stringify(jsonHealth);
-	    alert( "success:"+jsonText);
+	  	scom_urls["scomdashboard"].health = 'green';
+	  	setHealthOfNode("scomdashboard");
+
+	  	scom_urls[ele.id()].health = 'green';
+	  	setHealthOfNode(ele.id());
+		if (data)
+	  		logMessage(JSON.stringify(data));
+	  	else
+	  		logMessage(ele.id()+": unable to parse json response");
 	  },
 	  error: function (xhr, ajaxOptions, thrownError) {
-	          alert(xhr.status);
-	          alert(thrownError);
+	  	 scom_urls["scomdashboard"].health = 'red';
+	  	 setHealthOfNode("scomdashboard");
+	     logMessage(ele.id()+":"+xhr.status);
       }
 	});
-*/
 
 
   }
+
 });
 
 
