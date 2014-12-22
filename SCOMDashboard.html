@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<!--
+
+Wish List
+
+	set status
+	- see where orgin is pointing and update accordingly, on load only
+	- set node.js service color appropriately
+	- install SCOMDashBoard.js in dev, change html accordingly
+	- on load get status of all nodes and display appropriate color
+		-- research xml to json transform
+	- for scom and scom2 put nodes under it for
+		--services and color status
+		--svn
+		--code info
+		--memory
+	- scom-110 and scom109
+		--memory
+		--services
+		--svn
+		--code info
+		--aeminfo build number
+	-  on load make sure its looks pretty, i.e. arrange nodes appropriated
+	-  do the following for other apache server and services
+	-  figure out rules for apache health ? display appropriate color
+	-  add to git github project
+
+	Done
+	x add scomdashbaord service node.
+	x display graph of scom and its components
+	x clicking a node will load its associated link
+	x add html status bar text and update status message on clicks and helath checks
+
+
+
+
+		Currently using
+		http://js.cytoscape.org/#demos
+
+		Misc dev links
+		http://jointjs.com/demos
+		http://www.graphdracula.net/showcase/
+		http://nlpviz.bpodgursky.com/home
+		http://bl.ocks.org/rkirsling/5001347
+		http://sigmajs.org/
+		http://www.jasondavies.com/graph-music/
+
+
+		Subarau Links
+		origin-www.subaru.com
+		http://origin-www.subaru.com/health/report.xml
+
+		Health
+		http://scom-110.prod.subaru.com/health/report.xml
+		http://scom2-110.prod.subaru.com/health/report.xml
+		http://scom-109.prod.subaru.com/health/report.xml
+		http://scom2-109.prod.subaru.com/health/report.xml
+
+		Apache status
+		http://scom-110.prod.subaru.com/server-status
+
+
+
+.health_green {
+    color: 'green';
+    background: 'green';
+    background-color: 'green';
+}
+
+.health_red {
+    color: red;
+    background: red;
+    background-color: red;
+}
+
+	//cy.$('#originhealth').addClass('health_green');
+
+
+-->
+<head>
+<style>
+body {
+  font: 14px helvetica neue, helvetica, arial, sans-serif;
+}
+
+#cy {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+
+</style>
+
+<meta charset=utf-8 />
+<title>SCOM Dashboard</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+</head>
+<body>
+<div id="cy"></div>
+<script>
+$(function(){ // on dom ready
+
+var cy = cytoscape({
+  container: document.getElementById('cy'),
+  style: [
+    {
+      selector: 'node',
+      css: {
+        'content': 'data(name)',
+        'background-color': 'green',
+        'shape': 'roundrectangle',
+        'text-valign': 'center',
+        'text-halign': 'center'
+      }
+    },
+    {
+      selector: '$node > node',
+      css: {
+        'padding-top': '10px',
+        'padding-left': '10px',
+        'padding-bottom': '10px',
+        'padding-right': '10px',
+        'text-valign': 'top',
+        'text-halign': 'center'
+      }
+    },
+    {
+      selector: 'edge',
+      css: {
+        'target-arrow-shape': 'triangle'
+      }
+    },
+    {
+      selector: ':selected',
+      css: {
+        'border-width': 3,
+        'border-color': '#333'
+      }
+    }
+  ],
+
+  elements: {
+    nodes: [
+      { data: { id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' }},
+      { data: { id: 'originhealth', name: 'origin' }},
+
+      { data: { id: 'soa-110', name: 'soa-110'} },
+      { data: { id: 'soa-110-health', name: 'apache health',  parent: 'soa-110'}},
+
+      { data: { id: 'soa-110-scom', name: 'scom',  parent: 'soa-110' } },
+      { data: { id: 'soa-110-scom-health', name: 'health',  parent: 'soa-110-scom' } },
+
+      { data: { id: 'soa-110-scom2', name: 'scom2', parent: 'soa-110' } },
+      { data: { id: 'soa-110-scom2-health', name: 'health',  parent: 'soa-110-scom2' } },
+
+      { data: { id: 'soa-109', name: 'soa-109', } },
+      { data: { id: 'soa-109-health', name: 'apache health',  parent: 'soa-109' } },
+
+      { data: { id: 'soa-109-scom', name: 'scom',  parent: 'soa-109' } },
+      { data: { id: 'soa-109-scom-health', name: 'health',  parent: 'soa-109-scom' } },
+
+      { data: { id: 'soa-109-scom2', name: 'scom2', parent: 'soa-109' } },
+      { data: { id: 'soa-109-scom2-health', name: 'health',  parent: 'soa-109-scom2' } }
+    ],
+    edges: [
+      { data: { id: 'origin-soa-110', source: 'originhealth', target: 'soa-110-scom' } }
+    ]
+  },
+
+  layout: {
+    name: 'cose',
+    padding: 5
+  }
+});
+
+var scom_urls = {
+	'scomdashboard': 		{url:'localhost:3000/originhealth',health:'grey'},
+	'originhealth': 		{url:'http://www.subaru.com/health/report.xml',health:'grey'},
+	'soa-110':				{url:'',health:'grey'},
+	'soa-110-health':		{url:'http://scom-110.prod.subaru.com/server-status',health:'grey'},
+	'soa-110-scom':			{url:'',health:'grey'},
+	'soa-110-scom-health':	{url:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey'},
+	'soa-110-scom2':		{url:'',health:'grey'},
+	'soa-110-scom2-health':	{url:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey'},
+	'soa-109':				{url:'',health:'grey'},
+	'soa-109-health':		{url:'http://scom-109.prod.subaru.com/server-status',health:'grey'},
+	'soa-109-scom':			{url:'',health:'grey'},
+	'soa-109-scom-health':	{url:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey'},
+	'soa-109-scom2':		{url:'',health:'grey'},
+	'soa-109-scom2-health':	{url:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey'}
+	};
+
+
+//on click
+cy.$('#originhealth,#soa-110-scom-health,#soa-110-scom2-health,#soa-109-scom-health,#soa-109-scom2-health,#soa-110-health,#soa-109-health').on('tap', function(e){
+ 	var ele = e.cyTarget;
+ 	logMessage('clicked ' + ele.id())
+ 	logMessage("loading " + scom_urls[ele.id()].url)
+	scom_urls[ele.id()].window = window.open(scom_urls[ele.id()].url);
+ 	logMessage("loaded " + scom_urls[ele.id()].url)
+});
+
+var logMessage = function(message)
+{
+ 	$("#status_message").val(message);
+ 	console.log(message);
+}
+
+var setHealthOfNode = function(nodeId)
+{
+  logMessage(nodeId+": changed health to " + scom_urls[nodeId].health)
+
+  //@todo should be rewritten, not pretty
+  if (scom_urls[nodeId].health == 'red')
+  {
+  	cy.style()
+	  .selector("#"+nodeId)
+		.css({
+		  'background-color': 'red'
+		}).update();
+  }
+  else if (scom_urls[nodeId].health == 'green')
+  {
+  	cy.style()
+	  .selector("#"+nodeId)
+		.css({
+		  'background-color': 'green'
+		}).update();
+  }
+  else
+  {
+  	cy.style()
+	  .selector("#"+nodeId)
+		.css({
+		  'background-color': 'grey'
+		}).update();
+  }
+}
+
+cy.nodes().forEach(function( ele ){
+  console.log( ele.id() );
+  setHealthOfNode(ele.id());
+  if (ele.id() == 'soa-110-health')
+  {
+  	//var mywindow = window.open(scom_urls[ele.id()].url, "NewWindow",  "status = no, toolbar = no, location = no, left = 9999, top = 9999, width = 10, height = 10");
+
+	scom_urls[ele.id()].window = window.open(scom_urls[ele.id()].url);
+	if (typeof scom_urls[ele.id()].window != 'undefined')
+	{
+	  	var test = scom_urls[ele.id()].window.document.getElementsByTagName('body')[0].innerHTML;
+		console.log("test="+test );
+	}
+
+/*
+	//http://www.leggetter.co.uk/2010/03/12/making-cross-domain-javascript-requests-using-xmlhttprequest-or-xdomainrequest.html
+	var invocation = new XMLHttpRequest();
+
+	function handler(evtXHR) {
+		if (invocation.readyState == 4)
+		{
+		  if (invocation.status == 200) {
+			  var data = invocation.responseText;
+			  var jsonHealth = xmlToJson(data);
+			  var jsonText = JSON.stringify(jsonHealth);
+			  alert( "success:"+jsonText);
+		  }
+		  else {
+			alert("Invocation Errors Occured");
+		  }
+		}
+	  }
+
+	invocation.open('GET', scom_urls[ele.id()].url, true);
+	invocation.onreadystatechange = handler;
+    invocation.send();
+
+
+
+try {
+	$.getJSON(scom_urls[ele.id()].url+"?callback=?", function(result){
+	   alert(result);
+	});
+}
+catch(err) {
+	   alert("exception");
+}
+
+	$.ajax({
+	  type: "GET",
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      crossDomain: true,
+      url: scom_urls[ele.id()].url,
+	  dataType: 'text',
+	  success: function(data)
+	  {
+	  	var jsonHealth = xmlToJson(data);
+	  	var jsonText = JSON.stringify(jsonHealth);
+	    alert( "success:"+jsonText);
+	  },
+	  error: function (xhr, ajaxOptions, thrownError) {
+	          alert(xhr.status);
+	          alert(thrownError);
+      }
+	});
+*/
+
+
+  }
+});
+
+
+
+
+}); // on dom ready
+
+</script>
+Status Message: <input id="status_message" type="text" size="60" disabled><br>
+</body>
+</html>
