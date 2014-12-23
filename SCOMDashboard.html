@@ -4,30 +4,7 @@
 
 Wish List
 
-	set status
-	- for scom and scom2 put nodes under it for
-		--services and color status
-		--svn
-		--code info
-		--memory
-	- scom-110 and scom109
-		--memory
-		--services
-		--svn
-		--code info
-		--aeminfo build number
-	-  do the following for other apache server and services
-	-  figure out rules for apache health ? display appropriate color
-
-
-	done
-		X install SCOMDashBoard.js in dev, change html accordingly
-		x set node.js service color appropriately
-		x see where orgin is pointing and update accordingly, on load only
-		x  add to git github project
-		x on load get status of all nodes and display appropriate color
-			x research xml to json transform
-
+		-  figure out rules for apache health ? display appropriate color
 
 		Currently using
 		http://js.cytoscape.org/#demos
@@ -39,7 +16,6 @@ Wish List
 		http://bl.ocks.org/rkirsling/5001347
 		http://sigmajs.org/
 		http://www.jasondavies.com/graph-music/
-
 
 		Subarau Links
 		http://origin-www.subaru.com/health/report.xml
@@ -75,6 +51,8 @@ body {
 <title>SCOM Dashboard</title>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+<script src="https://jquery-xml2json-plugin.googlecode.com/svn/trunk/jquery.xml2json.js"></script>
+
 </head>
 <body>
 <div id="cy"></div>
@@ -130,18 +108,34 @@ var cy = cytoscape({
 
       { data: { id: 'soa-110-scom', name: 'scom',  parent: 'soa-110' } },
       { data: { id: 'soa-110-scom-health', name: 'health',  parent: 'soa-110-scom' } },
+      { data: { id: 'soa-110-scom-services-health', name: 'services health',  parent: 'soa-110-scom' } },
+      { data: { id: 'soa-110-scom-codeinfo-health', name: 'codeinfo ',  parent: 'soa-110-scom' } },
+      { data: { id: 'soa-110-scom-svninfo-health', name: 'svninfo ',  parent: 'soa-110-scom' } },
+      { data: { id: 'soa-110-scom-aeminfo-health', name: 'aeminfo ',  parent: 'soa-110-scom' } },
 
       { data: { id: 'soa-110-scom2', name: 'scom2', parent: 'soa-110' } },
       { data: { id: 'soa-110-scom2-health', name: 'health',  parent: 'soa-110-scom2' } },
+      { data: { id: 'soa-110-scom2-services-health', name: 'services health',  parent: 'soa-110-scom2' } },
+      { data: { id: 'soa-110-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-110-scom2' } },
+      { data: { id: 'soa-110-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-110-scom2' } },
+      { data: { id: 'soa-110-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-110-scom2' } },
 
       { data: { id: 'soa-109', name: 'soa-109', } },
       { data: { id: 'soa-109-health', name: 'apache health',  parent: 'soa-109' } },
 
       { data: { id: 'soa-109-scom', name: 'scom',  parent: 'soa-109' } },
       { data: { id: 'soa-109-scom-health', name: 'health',  parent: 'soa-109-scom' } },
+      { data: { id: 'soa-109-scom-services-health', name: 'services health',  parent: 'soa-109-scom' } },
+      { data: { id: 'soa-109-scom-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom' } },
+      { data: { id: 'soa-109-scom-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom' } },
+      { data: { id: 'soa-109-scom-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom' } },
 
       { data: { id: 'soa-109-scom2', name: 'scom2', parent: 'soa-109' } },
-      { data: { id: 'soa-109-scom2-health', name: 'health',  parent: 'soa-109-scom2' } }
+      { data: { id: 'soa-109-scom2-health', name: 'health',  parent: 'soa-109-scom2' } },
+      { data: { id: 'soa-109-scom2-services-health', name: 'services health',  parent: 'soa-109-scom2' } },
+      { data: { id: 'soa-109-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom2' } },
+      { data: { id: 'soa-109-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom2' } },
+      { data: { id: 'soa-109-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom2' } }
     ]
   },
   layout: {
@@ -151,31 +145,51 @@ var cy = cytoscape({
 });
 
 
-var scom_urls = {
-	'scomdashboard': 		{url:'http://L60001073JRIN:3000/originhealth',xmlurl:'', health:'grey',callHealthService:false},
-	'originhealth': 		{url:'http://L60001073JRIN:3000/originhealth',xmlurl:'http://origin-www.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-110':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-health':		{url:'http://L60001073JRIN:3000/soa-110-health',xmlurl:'http://scom-110.prod.subaru.com/server-status',health:'grey',callHealthService:false},
-	'soa-110-scom':			{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-scom-health':	{url:'http://L60001073JRIN:3000/soa-110-scom-health',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-110-scom2':		{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-scom2-health':	{url:'http://L60001073JRIN:3000/soa-110-scom2-health',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-109':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-health':		{url:'http://L60001073JRIN:3000/soa-109-health',xmlurl:'http://scom-109.prod.subaru.com/server-status',health:'grey',callHealthService:false},
-	'soa-109-scom':			{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-scom-health':	{url:'http://L60001073JRIN:3000/soa-109-scom-health',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-109-scom2':		{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-scom2-health':	{url:'http://L60001073JRIN:3000/soa-109-scom2-health',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true}
+var scom_nodes = {
+	'scomdashboard': 				{url:'http://L60001073JRIN:3000/originhealth',xmlurl:'', health:'grey',callHealthService:false},
+	'originhealth': 				{url:'http://L60001073JRIN:3000/originhealth',xmlurl:'http://origin-www.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-110':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-health':				{url:'http://L60001073JRIN:3000/soa-110-health',xmlurl:'http://scom-110.prod.subaru.com/server-status',health:'grey',callHealthService:false},
+	'soa-110-scom':					{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-scom-health':			{url:'http://L60001073JRIN:3000/soa-110-scom-health',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-110-scom-services-health':	{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-scom-codeinfo-health':	{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-scom-svninfo-health':	{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-scom-aeminfo-health':	{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-scom2':				{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-scom2-health':			{url:'http://L60001073JRIN:3000/soa-110-scom2-health',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-110-scom2-services-health':{url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-scom2-codeinfo-health':{url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-scom2-svninfo-health':{url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-scom2-aeminfo-health': {url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-health':				{url:'http://L60001073JRIN:3000/soa-109-health',xmlurl:'http://scom-109.prod.subaru.com/server-status',health:'grey',callHealthService:false},
+	'soa-109-scom':					{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-scom-health':			{url:'http://L60001073JRIN:3000/soa-109-scom-health',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-109-scom-services-health': {url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109-scom-codeinfo-health': {url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109-scom-svninfo-health': {url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109-scom-aeminfo-health':  {url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109-scom2':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-scom2-health':			{url:'http://L60001073JRIN:3000/soa-109-scom2-health',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-109-scom2-services-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109-scom2-codeinfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109-scom2-svninfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109-scom2-aeminfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false}
 	};
 
 
 //on click
-cy.$('#originhealth,#soa-110-scom-health,#soa-110-scom2-health,#soa-109-scom-health,#soa-109-scom2-health,#soa-110-health,#soa-109-health').on('tap', function(e){
- 	var ele = e.cyTarget;
- 	//logMessage('clicked ' + ele.id())
- 	logMessage("loading " + scom_urls[ele.id()].xmlurl)
-	scom_urls[ele.id()].window = window.open(scom_urls[ele.id()].xmlurl);
- 	logMessage("loaded " + scom_urls[ele.id()].xmlurl)
+//cy.$('[id^=soa-],#originhealth').on('tap', function(e){
+//cy.$('#originhealth,#soa-110-scom-health,#soa-110-scom2-health,#soa-109-scom-health,#soa-109-scom2-health,#soa-110-health,#soa-109-health').on('tap', function(e){
+cy.nodes("*").on('tap', function(e){
+	var ele = e.cyTarget;
+ 	if (scom_nodes[ele.id()].xmlurl)
+ 	{
+		logMessage("loading " + scom_nodes[ele.id()].xmlurl)
+		scom_nodes[ele.id()].window = window.open(scom_nodes[ele.id()].xmlurl);
+		logMessage("loaded " + scom_nodes[ele.id()].xmlurl)
+ 	}
 });
 
 var logMessage = function(message)
@@ -185,9 +199,9 @@ var logMessage = function(message)
 }
 
 
-var setHealthOfNode = function(nodeId,healthObj)
+var setNode = function(nodeId,healthObj)
 {
-  logMessage(nodeId+": changed health to " + scom_urls[nodeId].health)
+  logMessage(nodeId+": changed health to " + scom_nodes[nodeId].health)
 
   if (healthObj)
   {
@@ -203,11 +217,64 @@ var setHealthOfNode = function(nodeId,healthObj)
 			  { group: "edges", data: { id: 'origin-link', source: 'originhealth', target: newLink} }
 			]);
 		}
-		scom_urls[nodeId].health = healthObj.status.health;
-  }
 
-  //@todo should be rewritten, not pretty
-  if (scom_urls[nodeId].health == 'red')
+		scom_nodes[nodeId].health = healthObj.status.health;
+
+		//update Service Node
+		//handle children so i can reuse json and don't need to make another call
+		//soa-110-scom2-services-health
+		var nodeIdService = healthObj.status.host+"-"+healthObj.status.container+"-services-health";
+		scom_nodes[nodeIdService].health = healthObj.status.statusChecks.statusCheck.health;
+	 	setHealthOfNode(nodeIdService);
+
+		//update CodeInfo Node
+		//healthObj.status.externals.external[0].$t
+		//<code-release>release-ms-12172014-1752</code-release>
+		var nodeCodeInfo = healthObj.status.host+"-"+healthObj.status.container+"-codeinfo-health";
+		var codeInfoVersion = $.xml2json(healthObj.status.externals.external[0].$t);
+		if (codeInfoVersion)
+		{
+			cy.$('#'+nodeCodeInfo).data("name","codeinfo "+codeInfoVersion);
+			scom_nodes[nodeCodeInfo].health = 'green';
+	 	}
+	 	else
+	 	{
+			cy.$('#'+nodeCodeInfo).data("name","codeinfo no version info");
+			scom_nodes[nodeCodeInfo].health = 'red';
+	 	}
+		setHealthOfNode(nodeCodeInfo);
+
+		//update aeminfo
+		var aemInfo = $.xml2json(healthObj.status.externals.external[1].$t);
+		var nodeAEMInfo = healthObj.status.host+"-"+healthObj.status.container+"-aeminfo-health";
+		//<?xml version="1.0" encoding="UTF-8" standalone="yes"?><package-version><name>Publish-Package</name><version>1.0</version><description>A package which can be replicated (activated) onto the publish instance. This package contains all development artifacts, as well as all content that has been authored through either an import or manually.</description><build-number>1375</build-number><build-date>2014-12-23T09:26:02-05:00</build-date><hash>B62A0E5211957FAC3A1E6E61386ABEBE</hash></package-version>
+		var aemInfoVersion = $.xml2json(healthObj.status.externals.external[1].$t);
+		if (aemInfoVersion)
+		{
+			//aemInfo.build_number   aemInfo.build_date
+			cy.$('#'+nodeAEMInfo).data("name","aeminfo "+aemInfoVersion.build_date+" "+aemInfoVersion.build_number);
+			scom_nodes[nodeAEMInfo].health = 'green';
+	 	}
+	 	else
+	 	{
+			cy.$('#'+nodeAEMInfo).data("name","aeminfo no version info");
+			scom_nodes[nodeAEMInfo].health = 'red';
+	 	}
+		setHealthOfNode(nodeAEMInfo);
+
+		//svnInfo
+		var nodeIdsvn = healthObj.status.host+"-"+healthObj.status.container+"-svninfo-health";
+		scom_nodes[nodeIdsvn].health = healthObj.status.extensions.extension.svnInfo.health;
+		setHealthOfNode(nodeIdsvn);
+  }
+ 	setHealthOfNode(nodeId);
+}
+
+
+var setHealthOfNode = function(nodeId)
+{
+ //@todo should be rewritten, not pretty
+  if (scom_nodes[nodeId].health == 'red')
   {
   	cy.style()
 	  .selector("#"+nodeId)
@@ -215,7 +282,7 @@ var setHealthOfNode = function(nodeId,healthObj)
 		  'background-color': 'red'
 		}).update();
   }
-  else if (scom_urls[nodeId].health == 'green')
+  else if (scom_nodes[nodeId].health == 'green')
   {
   	cy.style()
 	  .selector("#"+nodeId)
@@ -234,27 +301,27 @@ var setHealthOfNode = function(nodeId,healthObj)
 }
 
 
-
 cy.nodes().forEach(function( ele ){
 
     //skip nodes we don't want to make health checks on
-	setHealthOfNode(ele.id(),null);
-    if (scom_urls[ele.id()].callHealthService)
+	setNode(ele.id(),null);
+    if (scom_nodes[ele.id()].callHealthService)
 	{
 		logMessage(ele.id()+": getting health status...");
 
 		$.ajax({
 		  type: 'GET',
-		  url: scom_urls[ele.id()].url,
+		  url: scom_nodes[ele.id()].url,
 		  contentType: 'text/plain',
-	  dataType: 'json',
+	  	  dataType: 'json',
+	  	  timeout: 10000,
 		  success: function(data)
 		  {
-			scom_urls["scomdashboard"].health = 'green';
-			setHealthOfNode("scomdashboard",null);
+			scom_nodes["scomdashboard"].health = 'green';
+			setNode("scomdashboard",null);
 
 			if (data){
-				setHealthOfNode(ele.id(),data);
+				setNode(ele.id(),data);
 			//	logMessage(JSON.stringify(data));
 			}else {
 				logMessage(ele.id()+": unable to parse json response");
@@ -262,8 +329,8 @@ cy.nodes().forEach(function( ele ){
 		  },
 		  error: function (xhr, ajaxOptions, thrownError) {
 			 //assume on any error scomdashboard service is down
-			 scom_urls["scomdashboard"].health = 'red';
-			 setHealthOfNode("scomdashboard",null);
+			 scom_nodes["scomdashboard"].health = 'red';
+			 setNode("scomdashboard",null);
 
 			 logMessage(ele.id()+":"+xhr.status);
 		  }
