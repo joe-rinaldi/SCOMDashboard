@@ -1,0 +1,15 @@
+{
+  "name": "SCOMDashBoard",
+  "version": "1.0",
+  "description": "SCOMDashBaord",
+  "author": "joseph_andre_rinaldi@yahoo.com",
+  "dependencies": {
+	  "express": "2.3.12",
+	  "xml-mapping": ">= 1.7.0",
+	  "winston": "git://github.com/flatiron/winston#master"
+	},
+  "repository": {
+	  "type": "git",
+	  "url": "https://github.com/joe-rinaldi/SCOMDashboard.git"
+	}
+}
