@@ -218,54 +218,73 @@ var setNode = function(nodeId,healthObj)
 			]);
 		}
 
-		scom_nodes[nodeId].health = healthObj.status.health;
-
-		//update Service Node
-		//handle children so i can reuse json and don't need to make another call
-		//soa-110-scom2-services-health
-		var nodeIdService = healthObj.status.host+"-"+healthObj.status.container+"-services-health";
-		scom_nodes[nodeIdService].health = healthObj.status.statusChecks.statusCheck.health;
-	 	setHealthOfNode(nodeIdService);
-
-		//update CodeInfo Node
-		//healthObj.status.externals.external[0].$t
-		//<code-release>release-ms-12172014-1752</code-release>
-		var nodeCodeInfo = healthObj.status.host+"-"+healthObj.status.container+"-codeinfo-health";
-		var codeInfoVersion = $.xml2json(healthObj.status.externals.external[0].$t);
-		if (codeInfoVersion)
+		if (healthObj && healthObj.status && healthObj.status.health)
 		{
-			cy.$('#'+nodeCodeInfo).data("name","codeinfo "+codeInfoVersion);
-			scom_nodes[nodeCodeInfo].health = 'green';
-	 	}
-	 	else
-	 	{
-			cy.$('#'+nodeCodeInfo).data("name","codeinfo no version info");
-			scom_nodes[nodeCodeInfo].health = 'red';
-	 	}
-		setHealthOfNode(nodeCodeInfo);
+			scom_nodes[nodeId].health = healthObj.status.health;
 
-		//update aeminfo
-		var aemInfo = $.xml2json(healthObj.status.externals.external[1].$t);
-		var nodeAEMInfo = healthObj.status.host+"-"+healthObj.status.container+"-aeminfo-health";
-		//<?xml version="1.0" encoding="UTF-8" standalone="yes"?><package-version><name>Publish-Package</name><version>1.0</version><description>A package which can be replicated (activated) onto the publish instance. This package contains all development artifacts, as well as all content that has been authored through either an import or manually.</description><build-number>1375</build-number><build-date>2014-12-23T09:26:02-05:00</build-date><hash>B62A0E5211957FAC3A1E6E61386ABEBE</hash></package-version>
-		var aemInfoVersion = $.xml2json(healthObj.status.externals.external[1].$t);
-		if (aemInfoVersion)
+			//update Service Node
+			//handle children so i can reuse json and don't need to make another call
+			//soa-110-scom2-services-health
+			var nodeIdService = healthObj.status.host+"-"+healthObj.status.container+"-services-health";
+			scom_nodes[nodeIdService].health = healthObj.status.statusChecks.statusCheck.health;
+			setHealthOfNode(nodeIdService);
+
+			//update CodeInfo Node
+			//healthObj.status.externals.external[0].$t
+			//<code-release>release-ms-12172014-1752</code-release>
+			var nodeCodeInfo = healthObj.status.host+"-"+healthObj.status.container+"-codeinfo-health";
+			var codeInfoVersion = $.xml2json(healthObj.status.externals.external[0].$t);
+			if (codeInfoVersion)
+			{
+				cy.$('#'+nodeCodeInfo).data("name","codeinfo "+codeInfoVersion);
+				scom_nodes[nodeCodeInfo].health = 'green';
+			}
+			else
+			{
+				cy.$('#'+nodeCodeInfo).data("name","codeinfo no version info");
+				scom_nodes[nodeCodeInfo].health = 'red';
+			}
+			setHealthOfNode(nodeCodeInfo);
+
+			//update aeminfo
+			var aemInfo = $.xml2json(healthObj.status.externals.external[1].$t);
+			var nodeAEMInfo = healthObj.status.host+"-"+healthObj.status.container+"-aeminfo-health";
+			//<?xml version="1.0" encoding="UTF-8" standalone="yes"?><package-version><name>Publish-Package</name><version>1.0</version><description>A package which can be replicated (activated) onto the publish instance. This package contains all development artifacts, as well as all content that has been authored through either an import or manually.</description><build-number>1375</build-number><build-date>2014-12-23T09:26:02-05:00</build-date><hash>B62A0E5211957FAC3A1E6E61386ABEBE</hash></package-version>
+			var aemInfoVersion = $.xml2json(healthObj.status.externals.external[1].$t);
+			if (aemInfoVersion)
+			{
+				//aemInfo.build_number   aemInfo.build_date
+				cy.$('#'+nodeAEMInfo).data("name","aeminfo "+aemInfoVersion.build_date+" "+aemInfoVersion.build_number);
+				scom_nodes[nodeAEMInfo].health = 'green';
+			}
+			else
+			{
+				cy.$('#'+nodeAEMInfo).data("name","aeminfo no version info");
+				scom_nodes[nodeAEMInfo].health = 'red';
+			}
+			setHealthOfNode(nodeAEMInfo);
+
+			//svnInfo
+			var nodeIdsvn = healthObj.status.host+"-"+healthObj.status.container+"-svninfo-health";
+			scom_nodes[nodeIdsvn].health = healthObj.status.extensions.extension.svnInfo.health;
+			setHealthOfNode(nodeIdsvn);
+		}
+		else
 		{
-			//aemInfo.build_number   aemInfo.build_date
-			cy.$('#'+nodeAEMInfo).data("name","aeminfo "+aemInfoVersion.build_date+" "+aemInfoVersion.build_number);
-			scom_nodes[nodeAEMInfo].health = 'green';
-	 	}
-	 	else
-	 	{
-			cy.$('#'+nodeAEMInfo).data("name","aeminfo no version info");
-			scom_nodes[nodeAEMInfo].health = 'red';
-	 	}
-		setHealthOfNode(nodeAEMInfo);
+			scom_nodes[nodeId].health = "red";
+			var nodeHeader = nodeId.substr(0,nodeId.lastIndexOf("-")-1);
+			logMessage("nodeHeader="+nodeHeader);
 
-		//svnInfo
-		var nodeIdsvn = healthObj.status.host+"-"+healthObj.status.container+"-svninfo-health";
-		scom_nodes[nodeIdsvn].health = healthObj.status.extensions.extension.svnInfo.health;
-		setHealthOfNode(nodeIdsvn);
+			scom_nodes[nodeHeader+"-services-health"].health = "red";
+			setHealthOfNode(nodeHeader+"-services-health");
+			scom_nodes[nodeHeader+"-codeinfo-health"].health = "red";
+			setHealthOfNode(nodeHeader+"-codeinfo-health");
+			scom_nodes[nodeHeader+"-aeminfo-health"].health = "red";
+			setHealthOfNode(nodeHeader+"-aeminfo-health");
+			scom_nodes[nodeHeader+"-svninfo-health"].health = "red";
+			setHealthOfNode(nodeHeader+"-svninfo-health");
+		}
+
   }
  	setHealthOfNode(nodeId);
 }

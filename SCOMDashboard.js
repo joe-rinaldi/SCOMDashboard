@@ -1,5 +1,14 @@
 /**
  * Module requirements.
+
+http://debugmode.net/2014/03/31/understanding-routing-of-expressjs-in-node-js/
+localhost:3000/originhealth/xml/json
+http://172.18.110.108:3000/originhealth/xml/json
+localhost:3000/originhealth
+"C:\Program Files\nodejs\node" SCOMDashBoard.js
+L60001073JRIN:3000/originhealth
+
+
  */
 
 var express = require('express');
@@ -64,12 +73,7 @@ app.get('/favicon.ico', function (req, res){
     winston.info('favicon requested');
 });
 
-//http://debugmode.net/2014/03/31/understanding-routing-of-expressjs-in-node-js/
-//localhost:3000/originhealth/xml/json
-//http://172.18.110.108:3000/originhealth/xml/json
-//localhost:3000/originhealth
-//"C:\Program Files\nodejs\node" SCOMDashBoard.js
-//L60001073JRIN:3000/originhealth
+
 
 app.get('/:id/:idRespType?/:respType?', function (req, res) {
 	if (!req.params.id)
@@ -118,24 +122,38 @@ var sendScomJson = function(id,respJson)
 				//convert xml to json
 				//https://www.npmjs.com/package/xml2json
 				//http://davidwalsh.name/convert-xml-json
-				if (result)
+				if (!res || res.statusCode == 200)
 				{
-				    winston.info('converting xml ...');
-				    //result = result.substring(result.indexOf("<status"),result.length);
-	   			    //winston.info('response result='+result);
-					jsonObj = XMLMapping.load(result,{ throwErrors : true });
-					if (jsonObj)
+					if (result)
 					{
-					  winston.info("jsonObj: " +JSON.stringify(jsonObj), null, " ");
+						if (result.indexOf("503 Service") > -1)
+						{
+							  winston.info("skipping xml parse");
+						}
+						else
+						{
+							winston.info('converting xml ...');
+							//result = result.substring(result.indexOf("<status"),result.length);
+							//winston.info('response result='+result);
+							jsonObj = XMLMapping.load(result,{ throwErrors : true });
+							if (jsonObj)
+							{
+							  winston.info("jsonObj: " +JSON.stringify(jsonObj), null, " ");
+							}
+							else
+							{
+							  winston.info("jsonObj: is empty");
+							}
+						}
 					}
 					else
 					{
-					  winston.info("jsonObj: is empty");
+						winston.info("result: is empty");
 					}
 				}
 				else
 				{
-					winston.info("result: is empty");
+					winston.info("res.statusCode = "+res.statusCode);
 				}
 			    winston.info('done');
 			    respJson.json(jsonObj);
