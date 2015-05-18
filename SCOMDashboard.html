@@ -3,26 +3,28 @@
 <!--
 
 ToDO
-
-	x change aeminfo and codeinfo nodes to display ameinfo ver=1401 2015-12-21 11:15
-	x label soa-109 and soa-109 as Prod envs somehow
-	x put service on soa040, change client, change scom Dashboard node.js service to be contained by soa040, make nodejs server easy to change
-	- make adding addtional nodes a js array change only. minmal code change
-	- create dashborad for mysubaru
+	x create dashborad for mysubaru
 			Dev
 			http://mysubaru.dev.subaru1.com:7779/
 			http://mysubaru.dev.subaru1.com:7779/health/report.xml
 
 			QA
-			http://www.qa.mysubaru.com/login.html
+			soa014
 			http://www.qa.mysubaru.com/health/report.xml
 
-
 			Prod
-			preprod.mysubaru.com
+			soa-117 and soa-118
 			http://preprod.mysubaru.com/health/report.xml
 
+	- create dashboard for webadmin
+		soa050
+		http://webadmin.qa.subarunet.com/health/report.xml
+		soa-110
+		http://webadmin.subarunet.com/health/report.xml
+
+
 	- create dashboard for scom qa
+
 	- create dashbaord for b2cstartall.sh
 
 		-  figure out rules for apache health ? display appropriate color
@@ -156,7 +158,20 @@ var cy = cytoscape({
       { data: { id: 'soa-109-scom2-services-health', name: 'services health',  parent: 'soa-109-scom2' } },
       { data: { id: 'soa-109-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom2' } },
       { data: { id: 'soa-109-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom2' } },
-      { data: { id: 'soa-109-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom2' } }
+      { data: { id: 'soa-109-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom2' } },
+
+      { data: { id: 'soa014', name: 'soa014 (QA)', } },
+      { data: { id: 'soa014-mysubaru', name: 'mysubaru', parent: 'soa014' } },
+      { data: { id: 'soa014-mysubaru-health', name: 'health', parent: 'soa014-mysubaru' } },
+
+      { data: { id: 'soa-117', name: 'soa-117 (PROD)', } },
+      { data: { id: 'soa-117-mysubaru', name: 'mysubaru', parent: 'soa-117' } },
+      { data: { id: 'soa-117-mysubaru-health', name: 'health', parent: 'soa-117-mysubaru' } },
+
+      { data: { id: 'soa-118', name: 'soa-118 (PROD)', } },
+      { data: { id: 'soa-118-mysubaru', name: 'mysubaru', parent: 'soa-118' } },
+      { data: { id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru' } }
+
     ]
   },
   layout: {
@@ -165,8 +180,9 @@ var cy = cytoscape({
   }
 });
 
-var scomdashboardService='http://L60001073JRIN:3000';
-scomdashboardService = 'http://soa040.subaru1.com:3000';
+var scomdashboardService;
+scomdashboardService='http://L60001073JRIN:3000';
+scomdashboardService='http://soa040.subaru1.com:3000';
 
 
 var scom_nodes = {
@@ -199,8 +215,20 @@ var scom_nodes = {
 	'soa-109-scom2-services-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
 	'soa-109-scom2-codeinfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
 	'soa-109-scom2-svninfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-scom2-aeminfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false}
-	};
+	'soa-109-scom2-aeminfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+
+	'soa014':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa014-mysubaru':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa014-mysubaru-health':		{url:scomdashboardService+'/soa014-mysubaru-health',xmlurl:'http://www.qa.mysubaru.com/health/report.xml',health:'grey',callHealthService:true},
+
+	'soa-117':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-117-mysubaru':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-117-mysubaru-health':		{url:scomdashboardService+'/soa-117-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml',health:'grey',callHealthService:true},
+
+	'soa-118':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-118-mysubaru':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-118-mysubaru-health':		{url:scomdashboardService+'/soa-118-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml',health:'grey',callHealthService:true}
+	}
 
 
 //on click
@@ -247,71 +275,79 @@ var setNode = function(nodeId,healthObj)
 			]);
 		}
 
-		if (healthObj && healthObj.status && healthObj.status.health)
+		if (nodeId.indexOf("scom") > -1)
+		{
+			if (healthObj && healthObj.status && healthObj.status.health)
+			{
+				scom_nodes[nodeId].health = healthObj.status.health;
+
+				//update Service Node
+				//handle children so i can reuse json and don't need to make another call
+				//soa-110-scom2-services-health
+				var nodeIdService = healthObj.status.host+"-"+healthObj.status.container+"-services-health";
+				scom_nodes[nodeIdService].health = healthObj.status.statusChecks.statusCheck.health;
+				setHealthOfNode(nodeIdService);
+
+				//update CodeInfo Node
+				//healthObj.status.externals.external[0].$t
+				//<code-release>release-ms-12172014-1752</code-release>
+				var nodeCodeInfo = healthObj.status.host+"-"+healthObj.status.container+"-codeinfo-health";
+				var codeInfoVersion = $.xml2json(healthObj.status.externals.external[0].$t);
+				if (codeInfoVersion)
+				{
+					cy.$('#'+nodeCodeInfo).data("name","codeinfo "+codeInfoVersion);
+					scom_nodes[nodeCodeInfo].health = 'green';
+				}
+				else
+				{
+					cy.$('#'+nodeCodeInfo).data("name","codeinfo no version info");
+					scom_nodes[nodeCodeInfo].health = 'red';
+				}
+				setHealthOfNode(nodeCodeInfo);
+
+				//update aeminfo
+				var aemInfo = $.xml2json(healthObj.status.externals.external[1].$t);
+				var nodeAEMInfo = healthObj.status.host+"-"+healthObj.status.container+"-aeminfo-health";
+				//<?xml version="1.0" encoding="UTF-8" standalone="yes"?><package-version><name>Publish-Package</name><version>1.0</version><description>A package which can be replicated (activated) onto the publish instance. This package contains all development artifacts, as well as all content that has been authored through either an import or manually.</description><build-number>1375</build-number><build-date>2014-12-23T09:26:02-05:00</build-date><hash>B62A0E5211957FAC3A1E6E61386ABEBE</hash></package-version>
+				var aemInfoVersion = $.xml2json(healthObj.status.externals.external[1].$t);
+				if (aemInfoVersion)
+				{
+					//aemInfo.build_number   aemInfo.build_date
+					cy.$('#'+nodeAEMInfo).data("name","aeminfo "+aemInfoVersion.build_number+", "+removeTimeFromDateStr(aemInfoVersion.build_date));
+					scom_nodes[nodeAEMInfo].health = 'green';
+				}
+				else
+				{
+					cy.$('#'+nodeAEMInfo).data("name","aeminfo no version info");
+					scom_nodes[nodeAEMInfo].health = 'red';
+				}
+				setHealthOfNode(nodeAEMInfo);
+
+				//svnInfo
+				var nodeIdsvn = healthObj.status.host+"-"+healthObj.status.container+"-svninfo-health";
+				scom_nodes[nodeIdsvn].health = healthObj.status.extensions.extension.svnInfo.health;
+				setHealthOfNode(nodeIdsvn);
+			}
+			else
+			{
+				scom_nodes[nodeId].health = "red";
+				var nodeHeader = nodeId.substr(0,nodeId.lastIndexOf("-")-1);
+				logMessage("nodeHeader="+nodeHeader);
+
+				scom_nodes[nodeHeader+"-services-health"].health = "red";
+				setHealthOfNode(nodeHeader+"-services-health");
+				scom_nodes[nodeHeader+"-codeinfo-health"].health = "red";
+				setHealthOfNode(nodeHeader+"-codeinfo-health");
+				scom_nodes[nodeHeader+"-aeminfo-health"].health = "red";
+				setHealthOfNode(nodeHeader+"-aeminfo-health");
+				scom_nodes[nodeHeader+"-svninfo-health"].health = "red";
+				setHealthOfNode(nodeHeader+"-svninfo-health");
+			}
+		}
+
+		if (nodeId.indexOf("mysubaru") > -1)
 		{
 			scom_nodes[nodeId].health = healthObj.status.health;
-
-			//update Service Node
-			//handle children so i can reuse json and don't need to make another call
-			//soa-110-scom2-services-health
-			var nodeIdService = healthObj.status.host+"-"+healthObj.status.container+"-services-health";
-			scom_nodes[nodeIdService].health = healthObj.status.statusChecks.statusCheck.health;
-			setHealthOfNode(nodeIdService);
-
-			//update CodeInfo Node
-			//healthObj.status.externals.external[0].$t
-			//<code-release>release-ms-12172014-1752</code-release>
-			var nodeCodeInfo = healthObj.status.host+"-"+healthObj.status.container+"-codeinfo-health";
-			var codeInfoVersion = $.xml2json(healthObj.status.externals.external[0].$t);
-			if (codeInfoVersion)
-			{
-				cy.$('#'+nodeCodeInfo).data("name","codeinfo "+codeInfoVersion);
-				scom_nodes[nodeCodeInfo].health = 'green';
-			}
-			else
-			{
-				cy.$('#'+nodeCodeInfo).data("name","codeinfo no version info");
-				scom_nodes[nodeCodeInfo].health = 'red';
-			}
-			setHealthOfNode(nodeCodeInfo);
-
-			//update aeminfo
-			var aemInfo = $.xml2json(healthObj.status.externals.external[1].$t);
-			var nodeAEMInfo = healthObj.status.host+"-"+healthObj.status.container+"-aeminfo-health";
-			//<?xml version="1.0" encoding="UTF-8" standalone="yes"?><package-version><name>Publish-Package</name><version>1.0</version><description>A package which can be replicated (activated) onto the publish instance. This package contains all development artifacts, as well as all content that has been authored through either an import or manually.</description><build-number>1375</build-number><build-date>2014-12-23T09:26:02-05:00</build-date><hash>B62A0E5211957FAC3A1E6E61386ABEBE</hash></package-version>
-			var aemInfoVersion = $.xml2json(healthObj.status.externals.external[1].$t);
-			if (aemInfoVersion)
-			{
-				//aemInfo.build_number   aemInfo.build_date
-				cy.$('#'+nodeAEMInfo).data("name","aeminfo "+aemInfoVersion.build_number+", "+removeTimeFromDateStr(aemInfoVersion.build_date));
-				scom_nodes[nodeAEMInfo].health = 'green';
-			}
-			else
-			{
-				cy.$('#'+nodeAEMInfo).data("name","aeminfo no version info");
-				scom_nodes[nodeAEMInfo].health = 'red';
-			}
-			setHealthOfNode(nodeAEMInfo);
-
-			//svnInfo
-			var nodeIdsvn = healthObj.status.host+"-"+healthObj.status.container+"-svninfo-health";
-			scom_nodes[nodeIdsvn].health = healthObj.status.extensions.extension.svnInfo.health;
-			setHealthOfNode(nodeIdsvn);
-		}
-		else
-		{
-			scom_nodes[nodeId].health = "red";
-			var nodeHeader = nodeId.substr(0,nodeId.lastIndexOf("-")-1);
-			logMessage("nodeHeader="+nodeHeader);
-
-			scom_nodes[nodeHeader+"-services-health"].health = "red";
-			setHealthOfNode(nodeHeader+"-services-health");
-			scom_nodes[nodeHeader+"-codeinfo-health"].health = "red";
-			setHealthOfNode(nodeHeader+"-codeinfo-health");
-			scom_nodes[nodeHeader+"-aeminfo-health"].health = "red";
-			setHealthOfNode(nodeHeader+"-aeminfo-health");
-			scom_nodes[nodeHeader+"-svninfo-health"].health = "red";
-			setHealthOfNode(nodeHeader+"-svninfo-health");
 		}
 
   }
