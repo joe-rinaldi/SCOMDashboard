@@ -3,18 +3,6 @@
 <!--
 
 ToDO
-	x create dashborad for mysubaru
-			Dev
-			http://mysubaru.dev.subaru1.com:7779/
-			http://mysubaru.dev.subaru1.com:7779/health/report.xml
-
-			QA
-			soa014
-			http://www.qa.mysubaru.com/health/report.xml
-
-			Prod
-			soa-117 and soa-118
-			http://preprod.mysubaru.com/health/report.xml
 
 	- create dashboard for webadmin
 		soa050
@@ -22,9 +10,24 @@ ToDO
 		soa-110
 		http://webadmin.subarunet.com/health/report.xml
 
-
+	- add database check for mysubaru nodes
+	- put apps under appropirate apache nodes, label properly
+		###################
+		#apache1
+		#  webadmin
+		#  util
+		#  vip
+		#apache4
+		#  serv
+		#  secure
+		#apache6
+		#  scom
+		#  scom2
+		#  services
+		#  [aem]
+		#  [aem2
+		###################
 	- create dashboard for scom qa
-
 	- create dashbaord for b2cstartall.sh
 
 		-  figure out rules for apache health ? display appropriate color
@@ -142,6 +145,8 @@ var cy = cytoscape({
       { data: { id: 'soa-110-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-110-scom2' } },
       { data: { id: 'soa-110-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-110-scom2' } },
       { data: { id: 'soa-110-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-110-scom2' } },
+      { data: { id: 'soa-110-webadmin', name: 'webadmin', parent: 'soa-110' } },
+      { data: { id: 'soa-110-webadmin-health', name: 'health', parent: 'soa-110-webadmin' } },
 
       { data: { id: 'soa-109', name: 'soa-109 (PROD)', } },
       { data: { id: 'soa-109-health', name: 'apache health',  parent: 'soa-109' } },
@@ -159,6 +164,8 @@ var cy = cytoscape({
       { data: { id: 'soa-109-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom2' } },
       { data: { id: 'soa-109-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom2' } },
       { data: { id: 'soa-109-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom2' } },
+      { data: { id: 'soa-109-webadmin', name: 'webadmin', parent: 'soa-109' } },
+      { data: { id: 'soa-109-webadmin-health', name: 'health', parent: 'soa-109-webadmin' } },
 
       { data: { id: 'soa014', name: 'soa014 (QA)', } },
       { data: { id: 'soa014-mysubaru', name: 'mysubaru', parent: 'soa014' } },
@@ -170,8 +177,11 @@ var cy = cytoscape({
 
       { data: { id: 'soa-118', name: 'soa-118 (PROD)', } },
       { data: { id: 'soa-118-mysubaru', name: 'mysubaru', parent: 'soa-118' } },
-      { data: { id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru' } }
+      { data: { id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru' } },
 
+      { data: { id: 'soa050', name: 'soa050 (QA)', } },
+      { data: { id: 'soa050-webadmin', name: 'webadmin', parent: 'soa050' } },
+      { data: { id: 'soa050-webadmin-health', name: 'health', parent: 'soa050-webadmin' } }
     ]
   },
   layout: {
@@ -181,8 +191,8 @@ var cy = cytoscape({
 });
 
 var scomdashboardService;
-scomdashboardService='http://L60001073JRIN:3000';
 scomdashboardService='http://soa040.subaru1.com:3000';
+scomdashboardService='http://L60001073JRIN:3000';
 
 
 var scom_nodes = {
@@ -202,6 +212,8 @@ var scom_nodes = {
 	'soa-110-scom2-codeinfo-health':{url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
 	'soa-110-scom2-svninfo-health':{url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
 	'soa-110-scom2-aeminfo-health': {url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-110-webadmin':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-webadmin-health':		{url:scomdashboardService+'/soa-110-scom2-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml',health:'grey',callHealthService:true},
 	'soa-109':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-109-health':				{url:scomdashboardService+'/soa-109-health',xmlurl:'http://scom-109.prod.subaru.com/server-status',health:'grey',callHealthService:false},
 	'soa-109-scom':					{url:'',xmlurl:'',health:'grey',callHealthService:false},
@@ -216,6 +228,8 @@ var scom_nodes = {
 	'soa-109-scom2-codeinfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
 	'soa-109-scom2-svninfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
 	'soa-109-scom2-aeminfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
+	'soa-109-webadmin':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-webadmin-health':		{url:scomdashboardService+'/soa-109-webadmin-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml',health:'grey',callHealthService:true},
 
 	'soa014':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
 	'soa014-mysubaru':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
@@ -227,8 +241,13 @@ var scom_nodes = {
 
 	'soa-118':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-118-mysubaru':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-118-mysubaru-health':		{url:scomdashboardService+'/soa-118-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml',health:'grey',callHealthService:true}
+	'soa-118-mysubaru-health':		{url:scomdashboardService+'/soa-118-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml',health:'grey',callHealthService:true},
+
+	'soa050':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-webadmin':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-webadmin-health':		{url:scomdashboardService+'/soa050-webadmin-health',xmlurl:'http://webadmin.qa.subarunet.com/health/report.xml',health:'grey',callHealthService:true}
 	}
+
 
 
 //on click
@@ -344,8 +363,11 @@ var setNode = function(nodeId,healthObj)
 				setHealthOfNode(nodeHeader+"-svninfo-health");
 			}
 		}
-
-		if (nodeId.indexOf("mysubaru") > -1)
+		else if (nodeId.indexOf("mysubaru") > -1)
+		{
+			scom_nodes[nodeId].health = healthObj.status.health;
+		}
+		else if (nodeId.indexOf("webadmin") > -1)
 		{
 			scom_nodes[nodeId].health = healthObj.status.health;
 		}
@@ -372,6 +394,14 @@ var setHealthOfNode = function(nodeId)
 	  .selector("#"+nodeId)
 		.css({
 		  'background-color': 'green'
+		}).update();
+  }
+  else if (scom_nodes[nodeId].health == 'yellow')
+  {
+  	cy.style()
+	  .selector("#"+nodeId)
+		.css({
+		  'background-color': 'yellow'
 		}).update();
   }
   else
