@@ -24,31 +24,27 @@ var winston = new (winston.Logger)({
     ]
 });
 
+//can i remove items with urls ?
 var scom_urls = {
 	'originhealth': 			{url:'http://origin-www.subaru.com/health/report.xml',health:'grey'},
-	'soa-110':					{url:'',health:'grey'},
 	'soa-110-health':			{url:'http://scom-110.prod.subaru.com/server-status',health:'grey'},
-	'soa-110-scom':				{url:'',health:'grey'},
-	'soa-110-scom-health':		{url:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-110-scom2':			{url:'',health:'grey'},
-	'soa-110-scom2-health':		{url:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-110-webadmin':			{url:'',health:'grey'},
 	'soa-110-webadmin-health':	{url:'http://webadmin.subarunet.com/health/report.xml',health:'grey'},
-	'soa-109':					{url:'',health:'grey'},
+	'soa-110-util-health':		{url:'http://util.subarunet.com/health/report.xml',health:'grey'},
+	'soa-110-vip-health':		{url:'http://vip.subarunet.com/health/report.xml',health:'grey'},
+
+	'soa-110-scom-health':		{url:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey'},
+	'soa-110-scom2-health':		{url:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey'},
+
 	'soa-109-health':			{url:'http://scom-109.prod.subaru.com/server-status',health:'grey'},
-	'soa-109-scom':				{url:'',health:'grey'},
-	'soa-109-scom-health':		{url:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-109-scom2':			{url:'',health:'grey'},
-	'soa-109-scom2-health':		{url:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-109-webadmin':			{url:'',health:'grey'},
 	'soa-109-webadmin-health':	{url:'http://webadmin.subarunet.com/health/report.xml',health:'grey'},
-	'soa014-mysubaru':			{url:'',health:'grey'},
+	'soa-109-util-health':		{url:'http://util.subarunet.com/health/report.xml',health:'grey'},
+	'soa-109-vip-health':		{url:'http://vip.subarunet.com/health/report.xml',health:'grey'},
+
+	'soa-109-scom-health':		{url:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey'},
+	'soa-109-scom2-health':		{url:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey'},
 	'soa014-mysubaru-health':	{url:'http://www.qa.mysubaru.com/health/report.xml',health:'grey'},
-	'soa-117-mysubaru':			{url:'',health:'grey'},
 	'soa-117-mysubaru-health':	{url:'http://preprod.mysubaru.com/health/report.xml',health:'grey'},
-	'soa-118-mysubaru':			{url:'',health:'grey'},
 	'soa-118-mysubaru-health':	{url:'http://preprod.mysubaru.com/health/report.xml',health:'grey'},
-	'soa050-webadmin':			{url:'',health:'grey'},
 	'soa050-webadmin-health':	{url:'http://webadmin.qa.subarunet.com/health/report.xml',health:'grey'}
 	};
 

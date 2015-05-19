@@ -4,14 +4,7 @@
 
 ToDO
 
-	- create dashboard for webadmin
-		soa050
-		http://webadmin.qa.subarunet.com/health/report.xml
-		soa-110
-		http://webadmin.subarunet.com/health/report.xml
-
-	- add database check for mysubaru nodes
-	- put apps under appropirate apache nodes, label properly
+	- added apache nodes, put apps under appropriate apache nodes
 		###################
 		#apache1
 		#  webadmin
@@ -28,9 +21,8 @@ ToDO
 		#  [aem2
 		###################
 	- create dashboard for scom qa
-	- create dashbaord for b2cstartall.sh
-
-		-  figure out rules for apache health ? display appropriate color
+	- add database check for mysubaru nodes
+	-  figure out rules for apache health ? display appropriate color
 
 		Currently using
 		http://js.cytoscape.org/#demos
@@ -42,18 +34,6 @@ ToDO
 		http://bl.ocks.org/rkirsling/5001347
 		http://sigmajs.org/
 		http://www.jasondavies.com/graph-music/
-
-		Subarau Links
-		http://origin-www.subaru.com/health/report.xml
-
-		Health
-		http://scom-110.prod.subaru.com/health/report.xml
-		http://scom2-110.prod.subaru.com/health/report.xml
-		http://scom-109.prod.subaru.com/health/report.xml
-		http://scom2-109.prod.subaru.com/health/report.xml
-
-		Apache status
-		http://scom-110.prod.subaru.com/server-status
 
 -->
 <head>
@@ -84,6 +64,85 @@ body {
 <div id="cy"></div>
 <script>
 $(function(){ // on dom ready
+
+//http://www.freeformatter.com/json-formatter.html#ad-output
+var scom_nodes = {
+	'scomdashboard': 				{id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' ,  url:'/originhealth',xmlurl:'', health:'grey',callHealthService:false},
+	'originhealth': 				{id: 'originhealth', name: 'origin' , url:'/originhealth',xmlurl:'http://origin-www.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-110':						{id: 'soa-110', name: 'soa-110 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
+
+	'soa-110-apache1':				{id: 'soa-110-apache1',		   name: 'apache1',			parent: 'soa-110', url:'', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-apache1-health':		{id: 'soa-110-apache1-health', name: 'apache1 health',  parent: 'soa-110-apache1', url:'/soa-110-health',xmlurl:'http://scom-110.prod.subaru.com/server-status', health:'grey',callHealthService:false},
+	'soa-110-webadmin':				{id: 'soa-110-webadmin', 		name: 'webadmin', parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-webadmin-health':		{id: 'soa-110-webadmin-health', name: 'health', parent: 'soa-110-webadmin' , url:'/soa-110-webadmin-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-util':					{id: 'soa-110-util', 		name: 'util', 	parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-util-health':			{id: 'soa-110-util-health', name: 'health', parent: 'soa-110-util', url:'/soa-110-util-health', xmlurl:'http://util.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-vip':					{id: 'soa-110-vip', 		name: 'vip', 	parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-vip-health':			{id: 'soa-110-vip-health', 	name: 'health', parent: 'soa-110-vip', url:'/soa-110-vip-health', xmlurl:'http://vip.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+
+
+	'soa-110-apache6':				{id: 'soa-110-apache6',		   name: 'apache6',			parent: 'soa-110', url:'', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-apache6-health':		{id: 'soa-110-apache6-health', name: 'apache6 health',  parent: 'soa-110-apache6', url:'/soa-110-apache6-health',xmlurl:'http://scom-110.prod.subaru.com/server-status', health:'grey',callHealthService:false},
+	'soa-110-scom':					{id: 'soa-110-scom', name: 'scom',  parent: 'soa-110-apache6' , url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-scom-health':			{id: 'soa-110-scom-health', name: 'health',  parent: 'soa-110-scom', url:'/soa-110-scom-health',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-scom-services-health':	{id: 'soa-110-scom-services-health', name: 'services health',  parent: 'soa-110-scom', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom-codeinfo-health':	{id: 'soa-110-scom-codeinfo-health', name: 'codeinfo ',  parent: 'soa-110-scom', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom-svninfo-health':	{id: 'soa-110-scom-svninfo-health', name: 'svninfo ',  parent: 'soa-110-scom', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom-aeminfo-health':	{id: 'soa-110-scom-aeminfo-health', name: 'aeminfo ',  parent: 'soa-110-scom', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2':				{id: 'soa-110-scom2', name: 'scom2', parent: 'soa-110-apache6', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2-health':			{id: 'soa-110-scom2-health', name: 'health',  parent: 'soa-110-scom2' , url:'/soa-110-scom2-health',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-scom2-services-health':{id: 'soa-110-scom2-services-health', name: 'services health',  parent: 'soa-110-scom2', url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2-codeinfo-health':{id: 'soa-110-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-110-scom2', url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2-svninfo-health': {id: 'soa-110-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-110-scom2' , url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2-aeminfo-health': {id: 'soa-110-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-110-scom2', url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+
+	'soa-109':						{id: 'soa-109', name: 'soa-109 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-apache1':				{id: 'soa-109-apache1', name: 'apache1',  parent: 'soa-109', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-apache1-health':		{id: 'soa-109-apache1-health', name: 'apache1 health',  parent: 'soa-109-apache1', url:'/soa-109-health',xmlurl:'http://scom-109.prod.subaru.com/server-status', health:'grey',callHealthService:false},
+	'soa-109-webadmin':				{id: 'soa-109-webadmin', name: 'webadmin', parent: 'soa-109-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-webadmin-health':		{id: 'soa-109-webadmin-health', name: 'health', parent: 'soa-109-webadmin', url:'/soa-109-webadmin-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-util':					{id: 'soa-109-util', name: 'util', parent: 'soa-109-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-util-health':			{id: 'soa-109-util-health', name: 'health', parent: 'soa-109-util' , url:'/soa-109-util-health',xmlurl:'http://util.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-vip':					{id: 'soa-109-vip', name: 'vip', parent: 'soa-109-apache1' , url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-vip-health':			{id: 'soa-109-vip-health', name: 'health', parent: 'soa-109-vip', url:'/soa-109-vip-health',xmlurl:'http://vip.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+
+
+	'soa-109-apache6':				{id: 'soa-109-apache6',		   name: 'apache6',			parent: 'soa-109', url:'', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-apache6-health':		{id: 'soa-109-apache6-health', name: 'apache6 health',  parent: 'soa-109-apache6', url:'/soa-109-apache6-health',xmlurl:'http://scom-109.prod.subaru.com/server-status', health:'grey',callHealthService:false},
+	'soa-109-scom':					{id: 'soa-109-scom', name: 'scom',  parent: 'soa-109-apache6', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-scom-health':			{id: 'soa-109-scom-health', name: 'health',  parent: 'soa-109-scom' ,url:'/soa-109-scom-health',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-scom-services-health': {id: 'soa-109-scom-services-health', name: 'services health',  parent: 'soa-109-scom' ,url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom-codeinfo-health': {id: 'soa-109-scom-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom', url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom-svninfo-health':  {id: 'soa-109-scom-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom' , url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom-aeminfo-health':  {id: 'soa-109-scom-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom', url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom2':				{id: 'soa-109-scom2', name: 'scom2', parent: 'soa-109-apache6', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-scom2-health':			{id: 'soa-109-scom2-health', name: 'health',  parent: 'soa-109-scom2', url:'/soa-109-scom2-health',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-scom2-services-health':{id: 'soa-109-scom2-services-health', name: 'services health',  parent: 'soa-109-scom2' ,url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom2-codeinfo-health':{id: 'soa-109-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom2', url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom2-svninfo-health': {id: 'soa-109-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom2', url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom2-aeminfo-health': {id: 'soa-109-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom2', url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+
+	'soa014':						{id: 'soa014', name: 'soa014 (QA)', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa014-apache8':				{id: 'soa014-apache8', name: 'apache8',  parent: 'soa014', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa014-mysubaru':				{id: 'soa014-mysubaru', name: 'mysubaru', parent: 'soa014-apache8' , url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa014-mysubaru-health':		{id: 'soa014-mysubaru-health', name: 'health', parent: 'soa014-mysubaru', url:'/soa014-mysubaru-health',xmlurl:'http://www.qa.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+
+	'soa-117':						{id: 'soa-117', name: 'soa-117 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-117-apache8':				{id: 'soa-117-apache8', name: 'apache8',  parent: 'soa-117', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-117-mysubaru':				{id: 'soa-117-mysubaru', name: 'mysubaru', parent: 'soa-117-apache8', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-117-mysubaru-health':		{id: 'soa-117-mysubaru-health', name: 'health', parent: 'soa-117-mysubaru' , url:'/soa-117-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+
+	'soa-118':						{id: 'soa-118', name: 'soa-118 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-118-apache8':				{id: 'soa-118-apache8', name: 'apache8',  parent: 'soa-118', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-118-mysubaru':				{id: 'soa-118-mysubaru', name: 'mysubaru', parent: 'soa-118-apache8', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-118-mysubaru-health':		{id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru', url:'/soa-118-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+
+	'soa050':						{id: 'soa050', name: 'soa050 (QA)', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-apache1':				{id: 'soa050-apache1', name: 'apache1',  parent: 'soa050', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-webadmin':				{id: 'soa050-webadmin', name: 'webadmin', parent: 'soa050-apache1' , url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-webadmin-health':		{id: 'soa050-webadmin-health', name: 'health', parent: 'soa050-webadmin', url:'/soa050-webadmin-health',xmlurl:'http://webadmin.qa.subarunet.com/health/report.xml', health:'grey',callHealthService:true}
+	}
+
 
 var cy = cytoscape({
   container: document.getElementById('cy'),
@@ -126,127 +185,125 @@ var cy = cytoscape({
 
   elements: {
     nodes: [
-      { data: { id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' }, position: { x: 500, y: 100 } },
-      { data: { id: 'originhealth', name: 'origin' }, position: { x: 100, y: 100 } },
+      { data: scom_nodes['scomdashboard'] },
+      { data: scom_nodes['originhealth'] },
+      { data: scom_nodes['soa-110'] },
+      { data: scom_nodes['soa-110-apache1']},
+      { data: scom_nodes['soa-110-apache1-health']},
+      { data: scom_nodes['soa-110-webadmin'] },
+      { data: scom_nodes['soa-110-webadmin-health'] },
+      { data: scom_nodes['soa-110-util'] },
+      { data: scom_nodes['soa-110-util-health']},
+      { data: scom_nodes['soa-110-vip'] },
+      { data: scom_nodes['soa-110-vip-health']},
 
-      { data: { id: 'soa-110', name: 'soa-110 (PROD)'} },
-      { data: { id: 'soa-110-health', name: 'apache health',  parent: 'soa-110'}},
+      { data: scom_nodes['soa-110-apache6']},
+      { data: scom_nodes['soa-110-apache6-health']},
+      { data: scom_nodes['soa-110-scom']},
+      { data: scom_nodes['soa-110-scom-health'] },
+      { data: scom_nodes['soa-110-scom-services-health'] },
+      { data: scom_nodes['soa-110-scom-codeinfo-health'] },
+      { data: scom_nodes['soa-110-scom-svninfo-health']},
+      { data: scom_nodes['soa-110-scom-aeminfo-health']},
 
-      { data: { id: 'soa-110-scom', name: 'scom',  parent: 'soa-110' } },
-      { data: { id: 'soa-110-scom-health', name: 'health',  parent: 'soa-110-scom' } },
-      { data: { id: 'soa-110-scom-services-health', name: 'services health',  parent: 'soa-110-scom' } },
-      { data: { id: 'soa-110-scom-codeinfo-health', name: 'codeinfo ',  parent: 'soa-110-scom' } },
-      { data: { id: 'soa-110-scom-svninfo-health', name: 'svninfo ',  parent: 'soa-110-scom' } },
-      { data: { id: 'soa-110-scom-aeminfo-health', name: 'aeminfo ',  parent: 'soa-110-scom' } },
+      { data: scom_nodes['soa-110-scom2'] },
+      { data: scom_nodes['soa-110-scom2-health'] },
+      { data: scom_nodes['soa-110-scom2-services-health'] },
+      { data: scom_nodes['soa-110-scom2-codeinfo-health']},
+      { data: scom_nodes['soa-110-scom2-svninfo-health'] },
+      { data: scom_nodes['soa-110-scom2-aeminfo-health'] },
 
-      { data: { id: 'soa-110-scom2', name: 'scom2', parent: 'soa-110' } },
-      { data: { id: 'soa-110-scom2-health', name: 'health',  parent: 'soa-110-scom2' } },
-      { data: { id: 'soa-110-scom2-services-health', name: 'services health',  parent: 'soa-110-scom2' } },
-      { data: { id: 'soa-110-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-110-scom2' } },
-      { data: { id: 'soa-110-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-110-scom2' } },
-      { data: { id: 'soa-110-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-110-scom2' } },
-      { data: { id: 'soa-110-webadmin', name: 'webadmin', parent: 'soa-110' } },
-      { data: { id: 'soa-110-webadmin-health', name: 'health', parent: 'soa-110-webadmin' } },
 
-      { data: { id: 'soa-109', name: 'soa-109 (PROD)', } },
-      { data: { id: 'soa-109-health', name: 'apache health',  parent: 'soa-109' } },
+      { data: scom_nodes['soa-109-apache6']},
+      { data: scom_nodes['soa-109-apache6-health']},
+      { data: scom_nodes['soa-109'] },
+      { data: scom_nodes['soa-109-apache1'] },
+      { data: scom_nodes['soa-109-apache1-health'] },
+      { data: scom_nodes['soa-109-webadmin'] },
+      { data: scom_nodes['soa-109-webadmin-health'] },
+      { data: scom_nodes['soa-109-util'] },
+      { data: scom_nodes['soa-109-util-health'] },
+      { data: scom_nodes['soa-109-vip'] },
+      { data: scom_nodes['soa-109-vip-health'] },
 
-      { data: { id: 'soa-109-scom', name: 'scom',  parent: 'soa-109' } },
-      { data: { id: 'soa-109-scom-health', name: 'health',  parent: 'soa-109-scom' } },
-      { data: { id: 'soa-109-scom-services-health', name: 'services health',  parent: 'soa-109-scom' } },
-      { data: { id: 'soa-109-scom-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom' } },
-      { data: { id: 'soa-109-scom-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom' } },
-      { data: { id: 'soa-109-scom-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom' } },
+      { data: scom_nodes['soa-109-scom'] },
+      { data: scom_nodes['soa-109-scom-health'] },
+      { data: scom_nodes['soa-109-scom-services-health'] },
+      { data: scom_nodes['soa-109-scom-codeinfo-health'] },
+      { data: scom_nodes['soa-109-scom-svninfo-health'] },
+      { data: scom_nodes['soa-109-scom-aeminfo-health'] },
 
-      { data: { id: 'soa-109-scom2', name: 'scom2', parent: 'soa-109' } },
-      { data: { id: 'soa-109-scom2-health', name: 'health',  parent: 'soa-109-scom2' } },
-      { data: { id: 'soa-109-scom2-services-health', name: 'services health',  parent: 'soa-109-scom2' } },
-      { data: { id: 'soa-109-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom2' } },
-      { data: { id: 'soa-109-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom2' } },
-      { data: { id: 'soa-109-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom2' } },
-      { data: { id: 'soa-109-webadmin', name: 'webadmin', parent: 'soa-109' } },
-      { data: { id: 'soa-109-webadmin-health', name: 'health', parent: 'soa-109-webadmin' } },
+      { data: scom_nodes['soa-109-scom2'] },
+      { data: scom_nodes['soa-109-scom2-health'] },
+      { data: scom_nodes['soa-109-scom2-services-health'] },
+      { data: scom_nodes['soa-109-scom2-codeinfo-health'] },
+      { data: scom_nodes['soa-109-scom2-svninfo-health'] },
+      { data: scom_nodes['soa-109-scom2-aeminfo-health'] },
 
-      { data: { id: 'soa014', name: 'soa014 (QA)', } },
-      { data: { id: 'soa014-mysubaru', name: 'mysubaru', parent: 'soa014' } },
-      { data: { id: 'soa014-mysubaru-health', name: 'health', parent: 'soa014-mysubaru' } },
+      { data: scom_nodes['soa014'] },
+      { data: scom_nodes['soa014-apache8'] },
+      { data: scom_nodes['soa014-mysubaru'] },
+      { data: scom_nodes['soa014-mysubaru-health'] },
 
-      { data: { id: 'soa-117', name: 'soa-117 (PROD)', } },
-      { data: { id: 'soa-117-mysubaru', name: 'mysubaru', parent: 'soa-117' } },
-      { data: { id: 'soa-117-mysubaru-health', name: 'health', parent: 'soa-117-mysubaru' } },
+      { data: scom_nodes['soa-117'] },
+      { data: scom_nodes['soa-117-apache8'] },
+      { data: scom_nodes['soa-117-mysubaru'] },
+      { data: scom_nodes['soa-117-mysubaru-health'] },
 
-      { data: { id: 'soa-118', name: 'soa-118 (PROD)', } },
-      { data: { id: 'soa-118-mysubaru', name: 'mysubaru', parent: 'soa-118' } },
-      { data: { id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru' } },
+      { data: scom_nodes['soa-118'] },
+      { data: scom_nodes['soa-118-apache8'] },
+      { data: scom_nodes['soa-118-mysubaru'] },
+      { data: scom_nodes['soa-118-mysubaru-health'] },
 
-      { data: { id: 'soa050', name: 'soa050 (QA)', } },
-      { data: { id: 'soa050-webadmin', name: 'webadmin', parent: 'soa050' } },
-      { data: { id: 'soa050-webadmin-health', name: 'health', parent: 'soa050-webadmin' } }
+      { data: scom_nodes['soa050'] },
+      { data: scom_nodes['soa050-apache1'] },
+      { data: scom_nodes['soa050-webadmin'] },
+      { data: scom_nodes['soa050-webadmin-health']  }
     ]
   },
   layout: {
-    name: 'cose',
-    padding: 5
+	name: 'cose',
+  // Called on `layoutready`
+  ready               : function() {},
+  // Called on `layoutstop`
+  stop                : function() {},
+  // Whether to animate while running the layout
+  animate             : true,
+  // Number of iterations between consecutive screen positions update (0 -> only updated on the end)
+  refresh             : 4,
+  // Whether to fit the network view after when done
+  fit                 : true,
+  // Padding on fit
+  padding             : 50,
+  // Constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+  boundingBox         : undefined,
+  // Whether to randomize node positions on the beginning
+  randomize           : true,
+  // Whether to use the JS console to print debug messages
+  debug               : false,
+  // Node repulsion (non overlapping) multiplier
+  nodeRepulsion       : 400000,
+  // Node repulsion (overlapping) multiplier
+  nodeOverlap         : 10,
+  // Ideal edge (non nested) length
+  idealEdgeLength     : 10,
+  // Divisor to compute edge forces
+  edgeElasticity      : 100,
+  // Nesting factor (multiplier) to compute ideal edge length for nested edges
+  nestingFactor       : 5,
+  // Gravity force (constant)
+  gravity             : 250,
+  // Maximum number of iterations to perform
+  numIter             : 100,
+  // Initial temperature (maximum node displacement)
+  initialTemp         : 200,
+  // Cooling factor (how the temperature is reduced between consecutive iterations
+  coolingFactor       : 0.95,
+  // Lower temperature threshold (below this point the layout will end)
+  minTemp             : 1.0
   }
 });
 
-var scomdashboardService;
-scomdashboardService='http://L60001073JRIN:3000';
-scomdashboardService='http://soa040.subaru1.com:3000';
-
-
-var scom_nodes = {
-	'scomdashboard': 				{url:scomdashboardService+'/originhealth',xmlurl:'', health:'grey',callHealthService:false},
-	'originhealth': 				{url:scomdashboardService+'/originhealth',xmlurl:'http://origin-www.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-110':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-health':				{url:scomdashboardService+'/soa-110-health',xmlurl:'http://scom-110.prod.subaru.com/server-status',health:'grey',callHealthService:false},
-	'soa-110-scom':					{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-scom-health':			{url:scomdashboardService+'/soa-110-scom-health',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-110-scom-services-health':	{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-scom-codeinfo-health':	{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-scom-svninfo-health':	{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-scom-aeminfo-health':	{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-scom2':				{url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-scom2-health':			{url:scomdashboardService+'/soa-110-scom2-health',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-110-scom2-services-health':{url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-scom2-codeinfo-health':{url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-scom2-svninfo-health':{url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-scom2-aeminfo-health': {url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-110-webadmin':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-webadmin-health':		{url:scomdashboardService+'/soa-110-scom2-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-109':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-health':				{url:scomdashboardService+'/soa-109-health',xmlurl:'http://scom-109.prod.subaru.com/server-status',health:'grey',callHealthService:false},
-	'soa-109-scom':					{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-scom-health':			{url:scomdashboardService+'/soa-109-scom-health',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-109-scom-services-health': {url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-scom-codeinfo-health': {url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-scom-svninfo-health': {url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-scom-aeminfo-health':  {url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-scom2':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-scom2-health':			{url:scomdashboardService+'/soa-109-scom2-health',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-109-scom2-services-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-scom2-codeinfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-scom2-svninfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-scom2-aeminfo-health':{url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey',callHealthService:false},
-	'soa-109-webadmin':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-webadmin-health':		{url:scomdashboardService+'/soa-109-webadmin-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml',health:'grey',callHealthService:true},
-
-	'soa014':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa014-mysubaru':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa014-mysubaru-health':		{url:scomdashboardService+'/soa014-mysubaru-health',xmlurl:'http://www.qa.mysubaru.com/health/report.xml',health:'grey',callHealthService:true},
-
-	'soa-117':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-117-mysubaru':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-117-mysubaru-health':		{url:scomdashboardService+'/soa-117-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml',health:'grey',callHealthService:true},
-
-	'soa-118':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-118-mysubaru':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-118-mysubaru-health':		{url:scomdashboardService+'/soa-118-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml',health:'grey',callHealthService:true},
-
-	'soa050':						{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa050-webadmin':				{url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa050-webadmin-health':		{url:scomdashboardService+'/soa050-webadmin-health',xmlurl:'http://webadmin.qa.subarunet.com/health/report.xml',health:'grey',callHealthService:true}
-	}
 
 
 
@@ -255,7 +312,7 @@ var scom_nodes = {
 //cy.$('#originhealth,#soa-110-scom-health,#soa-110-scom2-health,#soa-109-scom-health,#soa-109-scom2-health,#soa-110-health,#soa-109-health').on('tap', function(e){
 cy.nodes("*").on('tap', function(e){
 	var ele = e.cyTarget;
- 	if (scom_nodes[ele.id()].xmlurl)
+ 	if (scom_nodes[ele.id()].xmlurl && ele.id().indexOf("health") > -1)
  	{
 		logMessage("loading " + scom_nodes[ele.id()].xmlurl)
 		scom_nodes[ele.id()].window = window.open(scom_nodes[ele.id()].xmlurl);
@@ -277,103 +334,107 @@ var removeTimeFromDateStr = function(dateStr)
 
 var setNode = function(nodeId,healthObj)
 {
-  logMessage(nodeId+": changed health to " + scom_nodes[nodeId].health)
-
-  if (healthObj)
+  try
   {
-  		//update where origin is pointing to
-		if (nodeId == 'originhealth')
-		{
-			//healthObj.status.host  'soa-110'
-			//healthObj.status.container = 'scom'
-			var newLink = healthObj.status.host+'-'+healthObj.status.container;
+	  //logMessage(nodeId+": changed health to " + scom_nodes[nodeId].health)
 
-			cy.remove(cy.$("#origin-link"));
-			cy.add([
-			  { group: "edges", data: { id: 'origin-link', source: 'originhealth', target: newLink} }
-			]);
-		}
-
-		if (nodeId.indexOf("scom") > -1)
-		{
-			if (healthObj && healthObj.status && healthObj.status.health)
+	  if (healthObj)
+	  {
+			//update where origin is pointing to
+			if (nodeId == 'originhealth')
 			{
-				scom_nodes[nodeId].health = healthObj.status.health;
+				//healthObj.status.host  'soa-110'
+				//healthObj.status.container = 'scom'
+				var newLink = healthObj.status.host+'-'+healthObj.status.container;
 
-				//update Service Node
-				//handle children so i can reuse json and don't need to make another call
-				//soa-110-scom2-services-health
-				var nodeIdService = healthObj.status.host+"-"+healthObj.status.container+"-services-health";
-				scom_nodes[nodeIdService].health = healthObj.status.statusChecks.statusCheck.health;
-				setHealthOfNode(nodeIdService);
+				cy.remove(cy.$("#origin-link"));
+				cy.add([
+				  { group: "edges", data: { id: 'origin-link', source: 'originhealth', target: newLink} }
+				]);
+			}
 
-				//update CodeInfo Node
-				//healthObj.status.externals.external[0].$t
-				//<code-release>release-ms-12172014-1752</code-release>
-				var nodeCodeInfo = healthObj.status.host+"-"+healthObj.status.container+"-codeinfo-health";
-				var codeInfoVersion = $.xml2json(healthObj.status.externals.external[0].$t);
-				if (codeInfoVersion)
+			if (nodeId.indexOf("scom") > -1)
+			{
+				if (healthObj && healthObj.status && healthObj.status.health)
 				{
-					cy.$('#'+nodeCodeInfo).data("name","codeinfo "+codeInfoVersion);
-					scom_nodes[nodeCodeInfo].health = 'green';
+					scom_nodes[nodeId].health = healthObj.status.health;
+
+					//update Service Node
+					//handle children so i can reuse json and don't need to make another call
+					//soa-110-scom2-services-health
+					var nodeIdService = healthObj.status.host+"-"+healthObj.status.container+"-services-health";
+					scom_nodes[nodeIdService].health = healthObj.status.statusChecks.statusCheck.health;
+					setHealthOfNode(nodeIdService);
+
+					//update CodeInfo Node
+					//healthObj.status.externals.external[0].$t
+					//<code-release>release-ms-12172014-1752</code-release>
+					var nodeCodeInfo = healthObj.status.host+"-"+healthObj.status.container+"-codeinfo-health";
+					var codeInfoVersion = $.xml2json(healthObj.status.externals.external[0].$t);
+					if (codeInfoVersion)
+					{
+						cy.$('#'+nodeCodeInfo).data("name","codeinfo "+codeInfoVersion);
+						scom_nodes[nodeCodeInfo].health = 'green';
+					}
+					else
+					{
+						cy.$('#'+nodeCodeInfo).data("name","codeinfo no version info");
+						scom_nodes[nodeCodeInfo].health = 'red';
+					}
+					setHealthOfNode(nodeCodeInfo);
+
+					//update aeminfo
+					var aemInfo = $.xml2json(healthObj.status.externals.external[1].$t);
+					var nodeAEMInfo = healthObj.status.host+"-"+healthObj.status.container+"-aeminfo-health";
+					//<?xml version="1.0" encoding="UTF-8" standalone="yes"?><package-version><name>Publish-Package</name><version>1.0</version><description>A package which can be replicated (activated) onto the publish instance. This package contains all development artifacts, as well as all content that has been authored through either an import or manually.</description><build-number>1375</build-number><build-date>2014-12-23T09:26:02-05:00</build-date><hash>B62A0E5211957FAC3A1E6E61386ABEBE</hash></package-version>
+					var aemInfoVersion = $.xml2json(healthObj.status.externals.external[1].$t);
+					if (aemInfoVersion)
+					{
+						//aemInfo.build_number   aemInfo.build_date
+						cy.$('#'+nodeAEMInfo).data("name","aeminfo "+aemInfoVersion.build_number+", "+removeTimeFromDateStr(aemInfoVersion.build_date));
+						scom_nodes[nodeAEMInfo].health = 'green';
+					}
+					else
+					{
+						cy.$('#'+nodeAEMInfo).data("name","aeminfo no version info");
+						scom_nodes[nodeAEMInfo].health = 'red';
+					}
+					setHealthOfNode(nodeAEMInfo);
+
+					//svnInfo
+					var nodeIdsvn = healthObj.status.host+"-"+healthObj.status.container+"-svninfo-health";
+					scom_nodes[nodeIdsvn].health = healthObj.status.extensions.extension.svnInfo.health;
+					setHealthOfNode(nodeIdsvn);
 				}
 				else
 				{
-					cy.$('#'+nodeCodeInfo).data("name","codeinfo no version info");
-					scom_nodes[nodeCodeInfo].health = 'red';
-				}
-				setHealthOfNode(nodeCodeInfo);
+					scom_nodes[nodeId].health = "red";
+					var nodeHeader = nodeId.substr(0,nodeId.lastIndexOf("-")-1);
+					logMessage("nodeHeader="+nodeHeader);
 
-				//update aeminfo
-				var aemInfo = $.xml2json(healthObj.status.externals.external[1].$t);
-				var nodeAEMInfo = healthObj.status.host+"-"+healthObj.status.container+"-aeminfo-health";
-				//<?xml version="1.0" encoding="UTF-8" standalone="yes"?><package-version><name>Publish-Package</name><version>1.0</version><description>A package which can be replicated (activated) onto the publish instance. This package contains all development artifacts, as well as all content that has been authored through either an import or manually.</description><build-number>1375</build-number><build-date>2014-12-23T09:26:02-05:00</build-date><hash>B62A0E5211957FAC3A1E6E61386ABEBE</hash></package-version>
-				var aemInfoVersion = $.xml2json(healthObj.status.externals.external[1].$t);
-				if (aemInfoVersion)
-				{
-					//aemInfo.build_number   aemInfo.build_date
-					cy.$('#'+nodeAEMInfo).data("name","aeminfo "+aemInfoVersion.build_number+", "+removeTimeFromDateStr(aemInfoVersion.build_date));
-					scom_nodes[nodeAEMInfo].health = 'green';
+					scom_nodes[nodeHeader+"-services-health"].health = "red";
+					setHealthOfNode(nodeHeader+"-services-health");
+					scom_nodes[nodeHeader+"-codeinfo-health"].health = "red";
+					setHealthOfNode(nodeHeader+"-codeinfo-health");
+					scom_nodes[nodeHeader+"-aeminfo-health"].health = "red";
+					setHealthOfNode(nodeHeader+"-aeminfo-health");
+					scom_nodes[nodeHeader+"-svninfo-health"].health = "red";
+					setHealthOfNode(nodeHeader+"-svninfo-health");
 				}
-				else
-				{
-					cy.$('#'+nodeAEMInfo).data("name","aeminfo no version info");
-					scom_nodes[nodeAEMInfo].health = 'red';
-				}
-				setHealthOfNode(nodeAEMInfo);
-
-				//svnInfo
-				var nodeIdsvn = healthObj.status.host+"-"+healthObj.status.container+"-svninfo-health";
-				scom_nodes[nodeIdsvn].health = healthObj.status.extensions.extension.svnInfo.health;
-				setHealthOfNode(nodeIdsvn);
 			}
 			else
 			{
-				scom_nodes[nodeId].health = "red";
-				var nodeHeader = nodeId.substr(0,nodeId.lastIndexOf("-")-1);
-				logMessage("nodeHeader="+nodeHeader);
-
-				scom_nodes[nodeHeader+"-services-health"].health = "red";
-				setHealthOfNode(nodeHeader+"-services-health");
-				scom_nodes[nodeHeader+"-codeinfo-health"].health = "red";
-				setHealthOfNode(nodeHeader+"-codeinfo-health");
-				scom_nodes[nodeHeader+"-aeminfo-health"].health = "red";
-				setHealthOfNode(nodeHeader+"-aeminfo-health");
-				scom_nodes[nodeHeader+"-svninfo-health"].health = "red";
-				setHealthOfNode(nodeHeader+"-svninfo-health");
+			//else if (nodeId.indexOf("mysubaru") > -1)
+			//else if (nodeId.indexOf("webadmin") > -1)
+				scom_nodes[nodeId].health = healthObj.status.health;
 			}
-		}
-		else if (nodeId.indexOf("mysubaru") > -1)
-		{
-			scom_nodes[nodeId].health = healthObj.status.health;
-		}
-		else if (nodeId.indexOf("webadmin") > -1)
-		{
-			scom_nodes[nodeId].health = healthObj.status.health;
-		}
 
-  }
- 	setHealthOfNode(nodeId);
+		}
+		setHealthOfNode(nodeId);
+ 	}
+ 	catch(err) {
+	    logMessage("caught exception nodeId="+nodeId+" "+err);
+	}
 }
 
 
@@ -417,6 +478,10 @@ var setHealthOfNode = function(nodeId)
 
 cy.nodes().forEach(function( ele ){
 
+	var scomdashboardService;
+	scomdashboardService='http://L60001073JRIN:3000';
+	scomdashboardService='http://soa040.subaru1.com:3000';
+
     //skip nodes we don't want to make health checks on
 	setNode(ele.id(),null);
     if (scom_nodes[ele.id()].callHealthService)
@@ -425,7 +490,7 @@ cy.nodes().forEach(function( ele ){
 
 		$.ajax({
 		  type: 'GET',
-		  url: scom_nodes[ele.id()].url,
+		  url: scomdashboardService+scom_nodes[ele.id()].url,
 		  contentType: 'text/plain',
 	  	  dataType: 'json',
 	  	  timeout: 10000,
