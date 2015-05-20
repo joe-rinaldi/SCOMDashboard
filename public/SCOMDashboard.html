@@ -4,25 +4,16 @@
 
 ToDO
 
-	- added apache nodes, put apps under appropriate apache nodes
-		###################
-		#apache1
-		#  webadmin
-		#  util
-		#  vip
+	- create dashboard for scom qa
+	- add database check for mysubaru nodes
+	- add apache nodes for the following
 		#apache4
 		#  serv
 		#  secure
 		#apache6
-		#  scom
-		#  scom2
 		#  services
-		#  [aem]
-		#  [aem2
-		###################
-	- create dashboard for scom qa
-	- add database check for mysubaru nodes
-	-  figure out rules for apache health ? display appropriate color
+
+	- figure out rules for apache health ? display appropriate color
 
 		Currently using
 		http://js.cytoscape.org/#demos
@@ -479,8 +470,8 @@ var setHealthOfNode = function(nodeId)
 cy.nodes().forEach(function( ele ){
 
 	var scomdashboardService;
-	scomdashboardService='http://soa040.subaru1.com:3000';
 	scomdashboardService='http://L60001073JRIN:3000';
+	scomdashboardService='http://soa040.subaru1.com:3000';
 
     //skip nodes we don't want to make health checks on
 	setNode(ele.id(),null);
