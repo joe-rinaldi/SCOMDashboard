@@ -479,8 +479,8 @@ var setHealthOfNode = function(nodeId)
 cy.nodes().forEach(function( ele ){
 
 	var scomdashboardService;
-	scomdashboardService='http://L60001073JRIN:3000';
 	scomdashboardService='http://soa040.subaru1.com:3000';
+	scomdashboardService='http://L60001073JRIN:3000';
 
     //skip nodes we don't want to make health checks on
 	setNode(ele.id(),null);

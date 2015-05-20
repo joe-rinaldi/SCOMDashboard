@@ -59,31 +59,45 @@ var server = http.createServer(app);
 /**
  * Routes
  */
+//http://L60001073JRIN:3000/SCOMDashboard.html
+//http://soa040.subaru1.com:3000/SCOMDashboard.html
+//links above work in all browsers except chrome ? and ie which is ok
+//app.use(express.static('public'));
+app.use(express.static(__dirname + '/public'));
 
 app.all('*', function(req, res, next) {
+  winston.info('app.all requesting url='+req.url);
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   res.setHeader("Content-Type", "text/json");
-  winston.info('in app.all');
   next();
  });
 
+
 app.get('/', function (req, res) {
+    winston.info('app.get / requesting url='+req.url);
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end([' SCOMDashboard id=[id] idRespType=[xml]  reponsetype=[json]'].join(''));
-    winston.info('in root request');
 });
 
+/*
+app.get('/SCOMDashboard.html', function (req, res) {
+    winston.info('/SCOMDashboard requesting url='+req.url);
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.sendFile('SCOMDashboard.html');
+    res.end();
+});
+*/
 
 app.get('/favicon.ico', function (req, res){
+    winston.info('app.get /favicon requesting url='+req.url);
 	res.writeHead(200, {'Content-Type': 'image/x-icon'} );
 	res.end();
-    winston.info('favicon requested');
 });
-
 
 
 app.get('/:id/:idRespType?/:respType?', function (req, res) {
+    winston.info('app.get healthcheck requesting url='+req.url);
 	if (!req.params.id)
 	{
 		req.params.id = "originhealth";
@@ -105,6 +119,7 @@ app.get('/:id/:idRespType?/:respType?', function (req, res) {
 	res.type('json');
 	sendScomJson(req.params.id,res);
 });
+
 
 var sendScomJson = function(id,respJson)
 {
