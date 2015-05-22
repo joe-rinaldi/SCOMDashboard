@@ -59,6 +59,7 @@ var server = http.createServer(app);
 /**
  * Routes
  */
+//http://localhost:3000/SCOMDashboard.html
 //http://L60001073JRIN:3000/SCOMDashboard.html
 //http://soa040.subaru1.com:3000/SCOMDashboard.html
 //links above work in all browsers except chrome ? and ie which is ok

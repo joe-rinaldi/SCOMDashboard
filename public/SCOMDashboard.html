@@ -58,7 +58,7 @@ $(function(){ // on dom ready
 
 //http://www.freeformatter.com/json-formatter.html#ad-output
 var scom_nodes = {
-	'scomdashboard': 				{id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' ,  url:'/originhealth',xmlurl:'', health:'grey',callHealthService:false},
+	'scomdashboard': 				{id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' ,  url:'/originhealth',xmlurl:'', health:'red',callHealthService:false},
 	'originhealth': 				{id: 'originhealth', name: 'origin' , url:'/originhealth',xmlurl:'http://origin-www.subaru.com/health/report.xml',health:'grey',callHealthService:true},
 	'soa-110':						{id: 'soa-110', name: 'soa-110 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
 
@@ -67,9 +67,9 @@ var scom_nodes = {
 	'soa-110-webadmin':				{id: 'soa-110-webadmin', 		name: 'webadmin', parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-110-webadmin-health':		{id: 'soa-110-webadmin-health', name: 'health', parent: 'soa-110-webadmin' , url:'/soa-110-webadmin-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
 	'soa-110-util':					{id: 'soa-110-util', 		name: 'util', 	parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-util-health':			{id: 'soa-110-util-health', name: 'health', parent: 'soa-110-util', url:'/soa-110-util-health', xmlurl:'http://util.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-util-health':			{id: 'soa-110-util-health', name: 'health', parent: 'soa-110-util', url:'/soa-110-util-health', xmlurl:'http://util.subarunet.com/health/report.xml', health:'grey', callHealthService:true},
 	'soa-110-vip':					{id: 'soa-110-vip', 		name: 'vip', 	parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-vip-health':			{id: 'soa-110-vip-health', 	name: 'health', parent: 'soa-110-vip', url:'/soa-110-vip-health', xmlurl:'http://vip.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-vip-health':			{id: 'soa-110-vip-health', 	name: 'health', parent: 'soa-110-vip', url:'/soa-110-vip-health', xmlurl:'http://vip.subarunet.com/health/report.xml', health:'grey', callHealthService:true},
 
 
 	'soa-110-apache6':				{id: 'soa-110-apache6',		   name: 'apache6',			parent: 'soa-110', url:'', xmlurl:'',health:'grey',callHealthService:false},
@@ -93,7 +93,7 @@ var scom_nodes = {
 	'soa-109-webadmin':				{id: 'soa-109-webadmin', name: 'webadmin', parent: 'soa-109-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-109-webadmin-health':		{id: 'soa-109-webadmin-health', name: 'health', parent: 'soa-109-webadmin', url:'/soa-109-webadmin-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
 	'soa-109-util':					{id: 'soa-109-util', name: 'util', parent: 'soa-109-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-util-health':			{id: 'soa-109-util-health', name: 'health', parent: 'soa-109-util' , url:'/soa-109-util-health',xmlurl:'http://util.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-util-health':			{id: 'soa-109-util-health', name: 'health', parent: 'soa-109-util' , url:'/soa-109-util-health', xmlurl:'http://util.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
 	'soa-109-vip':					{id: 'soa-109-vip', name: 'vip', parent: 'soa-109-apache1' , url:'',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-109-vip-health':			{id: 'soa-109-vip-health', name: 'health', parent: 'soa-109-vip', url:'/soa-109-vip-health',xmlurl:'http://vip.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
 
@@ -307,7 +307,7 @@ cy.nodes("*").on('tap', function(e){
  	{
 		logMessage("loading " + scom_nodes[ele.id()].xmlurl)
 		scom_nodes[ele.id()].window = window.open(scom_nodes[ele.id()].xmlurl);
-		logMessage("loaded " + scom_nodes[ele.id()].xmlurl)
+		//logMessage("loaded " + scom_nodes[ele.id()].xmlurl)
  	}
 });
 
@@ -467,11 +467,13 @@ var setHealthOfNode = function(nodeId)
 }
 
 
+
 cy.nodes().forEach(function( ele ){
 
 	var scomdashboardService;
-	scomdashboardService='http://L60001073JRIN:3000';
-	scomdashboardService='http://soa040.subaru1.com:3000';
+	//scomdashboardService='http://soa040.subaru1.com:3000';
+	//scomdashboardService='http://L60001073JRIN:3000';
+	scomdashboardService='http://localhost:3000';
 
     //skip nodes we don't want to make health checks on
 	setNode(ele.id(),null);
@@ -498,10 +500,6 @@ cy.nodes().forEach(function( ele ){
 			}
 		  },
 		  error: function (xhr, ajaxOptions, thrownError) {
-			 //assume on any error scomdashboard service is down
-			 scom_nodes["scomdashboard"].health = 'red';
-			 setNode("scomdashboard",null);
-
 			 logMessage(ele.id()+":"+xhr.status);
 		  }
 		});
