@@ -3,7 +3,9 @@
 <!--
 
 ToDO
-
+	x add mysubaru and impact to QA
+	x remove health check array from nodejs server, just calls passed in xml url
+	- add mysubaru and impact to PROD
 	- create dashboard for scom qa
 	- add database check for mysubaru nodes
 	- add apache nodes for the following
@@ -12,6 +14,8 @@ ToDO
 		#  secure
 		#apache6
 		#  services
+	- add todo text message
+		add rules to comment if AEM is out of sync between 4 instances in prod, should all be same version
 
 	- figure out rules for apache health ? display appropriate color
 
@@ -58,80 +62,84 @@ $(function(){ // on dom ready
 
 //http://www.freeformatter.com/json-formatter.html#ad-output
 var scom_nodes = {
-	'scomdashboard': 				{id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' ,  url:'/originhealth',xmlurl:'', health:'red',callHealthService:false},
-	'originhealth': 				{id: 'originhealth', name: 'origin' , url:'/originhealth',xmlurl:'http://origin-www.subaru.com/health/report.xml',health:'grey',callHealthService:true},
-	'soa-110':						{id: 'soa-110', name: 'soa-110 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
+	'scomdashboard': 				{id: 'scomdashboard', name: 'SCOM Dashboard Node.js Service' ,  xmlurl:'', health:'red',callHealthService:false},
+	'originhealth': 				{id: 'originhealth', name: 'origin' , xmlurl:'origin-www.subaru.com/health/report.xml',health:'grey',callHealthService:true},
+	'soa-110':						{id: 'soa-110', name: 'soa-110 (PROD)', xmlurl:'',health:'grey',callHealthService:false},
 
-	'soa-110-apache1':				{id: 'soa-110-apache1',		   name: 'apache1',			parent: 'soa-110', url:'', xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-apache1-health':		{id: 'soa-110-apache1-health', name: 'apache1 health',  parent: 'soa-110-apache1', url:'/soa-110-health',xmlurl:'http://scom-110.prod.subaru.com/server-status', health:'grey',callHealthService:false},
-	'soa-110-webadmin':				{id: 'soa-110-webadmin', 		name: 'webadmin', parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-webadmin-health':		{id: 'soa-110-webadmin-health', name: 'health', parent: 'soa-110-webadmin' , url:'/soa-110-webadmin-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
-	'soa-110-util':					{id: 'soa-110-util', 		name: 'util', 	parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-util-health':			{id: 'soa-110-util-health', name: 'health', parent: 'soa-110-util', url:'/soa-110-util-health', xmlurl:'http://util.subarunet.com/health/report.xml', health:'grey', callHealthService:true},
-	'soa-110-vip':					{id: 'soa-110-vip', 		name: 'vip', 	parent: 'soa-110-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-vip-health':			{id: 'soa-110-vip-health', 	name: 'health', parent: 'soa-110-vip', url:'/soa-110-vip-health', xmlurl:'http://vip.subarunet.com/health/report.xml', health:'grey', callHealthService:true},
-
-
-	'soa-110-apache6':				{id: 'soa-110-apache6',		   name: 'apache6',			parent: 'soa-110', url:'', xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-apache6-health':		{id: 'soa-110-apache6-health', name: 'apache6 health',  parent: 'soa-110-apache6', url:'/soa-110-apache6-health',xmlurl:'http://scom-110.prod.subaru.com/server-status', health:'grey',callHealthService:false},
-	'soa-110-scom':					{id: 'soa-110-scom', name: 'scom',  parent: 'soa-110-apache6' , url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-110-scom-health':			{id: 'soa-110-scom-health', name: 'health',  parent: 'soa-110-scom', url:'/soa-110-scom-health',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
-	'soa-110-scom-services-health':	{id: 'soa-110-scom-services-health', name: 'services health',  parent: 'soa-110-scom', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-110-scom-codeinfo-health':	{id: 'soa-110-scom-codeinfo-health', name: 'codeinfo ',  parent: 'soa-110-scom', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-110-scom-svninfo-health':	{id: 'soa-110-scom-svninfo-health', name: 'svninfo ',  parent: 'soa-110-scom', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-110-scom-aeminfo-health':	{id: 'soa-110-scom-aeminfo-health', name: 'aeminfo ',  parent: 'soa-110-scom', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-110-scom2':				{id: 'soa-110-scom2', name: 'scom2', parent: 'soa-110-apache6', url:'',xmlurl:'http://scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-110-scom2-health':			{id: 'soa-110-scom2-health', name: 'health',  parent: 'soa-110-scom2' , url:'/soa-110-scom2-health',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
-	'soa-110-scom2-services-health':{id: 'soa-110-scom2-services-health', name: 'services health',  parent: 'soa-110-scom2', url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-110-scom2-codeinfo-health':{id: 'soa-110-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-110-scom2', url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-110-scom2-svninfo-health': {id: 'soa-110-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-110-scom2' , url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-110-scom2-aeminfo-health': {id: 'soa-110-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-110-scom2', url:'',xmlurl:'http://scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-
-	'soa-109':						{id: 'soa-109', name: 'soa-109 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-apache1':				{id: 'soa-109-apache1', name: 'apache1',  parent: 'soa-109', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-apache1-health':		{id: 'soa-109-apache1-health', name: 'apache1 health',  parent: 'soa-109-apache1', url:'/soa-109-health',xmlurl:'http://scom-109.prod.subaru.com/server-status', health:'grey',callHealthService:false},
-	'soa-109-webadmin':				{id: 'soa-109-webadmin', name: 'webadmin', parent: 'soa-109-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-webadmin-health':		{id: 'soa-109-webadmin-health', name: 'health', parent: 'soa-109-webadmin', url:'/soa-109-webadmin-health',xmlurl:'http://webadmin.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
-	'soa-109-util':					{id: 'soa-109-util', name: 'util', parent: 'soa-109-apache1', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-util-health':			{id: 'soa-109-util-health', name: 'health', parent: 'soa-109-util' , url:'/soa-109-util-health', xmlurl:'http://util.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
-	'soa-109-vip':					{id: 'soa-109-vip', name: 'vip', parent: 'soa-109-apache1' , url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-vip-health':			{id: 'soa-109-vip-health', name: 'health', parent: 'soa-109-vip', url:'/soa-109-vip-health',xmlurl:'http://vip.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-apache1':				{id: 'soa-110-apache1',		   name: 'apache1',			parent: 'soa-110',  xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-apache1-health':		{id: 'soa-110-apache1-health', name: 'apache1 health',  parent: 'soa-110-apache1',  xmlurl:'scom-110.prod.subaru.com/server-status', health:'grey',callHealthService:false},
+	'soa-110-webadmin':				{id: 'soa-110-webadmin', 		name: 'webadmin', parent: 'soa-110-apache1', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-webadmin-health':		{id: 'soa-110-webadmin-health', name: 'health', parent: 'soa-110-webadmin' , xmlurl:'webadmin.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-util':					{id: 'soa-110-util', 		name: 'util', 	parent: 'soa-110-apache1', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-util-health':			{id: 'soa-110-util-health', name: 'health', parent: 'soa-110-util', xmlurl:'util.subarunet.com/health/report.xml', health:'grey', callHealthService:true},
+	'soa-110-vip':					{id: 'soa-110-vip', 		name: 'vip', 	parent: 'soa-110-apache1',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-vip-health':			{id: 'soa-110-vip-health', 	name: 'health', parent: 'soa-110-vip', xmlurl:'vip.subarunet.com/health/report.xml', health:'grey', callHealthService:true},
 
 
-	'soa-109-apache6':				{id: 'soa-109-apache6',		   name: 'apache6',			parent: 'soa-109', url:'', xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-apache6-health':		{id: 'soa-109-apache6-health', name: 'apache6 health',  parent: 'soa-109-apache6', url:'/soa-109-apache6-health',xmlurl:'http://scom-109.prod.subaru.com/server-status', health:'grey',callHealthService:false},
-	'soa-109-scom':					{id: 'soa-109-scom', name: 'scom',  parent: 'soa-109-apache6', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-scom-health':			{id: 'soa-109-scom-health', name: 'health',  parent: 'soa-109-scom' ,url:'/soa-109-scom-health',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
-	'soa-109-scom-services-health': {id: 'soa-109-scom-services-health', name: 'services health',  parent: 'soa-109-scom' ,url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-109-scom-codeinfo-health': {id: 'soa-109-scom-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom', url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-109-scom-svninfo-health':  {id: 'soa-109-scom-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom' , url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-109-scom-aeminfo-health':  {id: 'soa-109-scom-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom', url:'',xmlurl:'http://scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-109-scom2':				{id: 'soa-109-scom2', name: 'scom2', parent: 'soa-109-apache6', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-109-scom2-health':			{id: 'soa-109-scom2-health', name: 'health',  parent: 'soa-109-scom2', url:'/soa-109-scom2-health',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
-	'soa-109-scom2-services-health':{id: 'soa-109-scom2-services-health', name: 'services health',  parent: 'soa-109-scom2' ,url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-109-scom2-codeinfo-health':{id: 'soa-109-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom2', url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-109-scom2-svninfo-health': {id: 'soa-109-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom2', url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
-	'soa-109-scom2-aeminfo-health': {id: 'soa-109-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom2', url:'',xmlurl:'http://scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-apache6':				{id: 'soa-110-apache6',		   name: 'apache6',			parent: 'soa-110', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-apache6-health':		{id: 'soa-110-apache6-health', name: 'apache6 health',  parent: 'soa-110-apache6', xmlurl:'scom-110.prod.subaru.com/server-status', health:'grey',callHealthService:false},
+	'soa-110-scom':					{id: 'soa-110-scom', name: 'scom',  parent: 'soa-110-apache6' ,xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-scom-health':			{id: 'soa-110-scom-health', name: 'health',  parent: 'soa-110-scom', xmlurl:'scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-scom-services-health':	{id: 'soa-110-scom-services-health', name: 'services health',  parent: 'soa-110-scom',xmlurl:'scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom-codeinfo-health':	{id: 'soa-110-scom-codeinfo-health', name: 'codeinfo ',  parent: 'soa-110-scom',xmlurl:'scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom-svninfo-health':	{id: 'soa-110-scom-svninfo-health', name: 'svninfo ',  parent: 'soa-110-scom',xmlurl:'scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom-aeminfo-health':	{id: 'soa-110-scom-aeminfo-health', name: 'aeminfo ',  parent: 'soa-110-scom',xmlurl:'scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2':				{id: 'soa-110-scom2', name: 'scom2', parent: 'soa-110-apache6',xmlurl:'scom-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2-health':			{id: 'soa-110-scom2-health', name: 'health',  parent: 'soa-110-scom2' , xmlurl:'scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-110-scom2-services-health':{id: 'soa-110-scom2-services-health', name: 'services health',  parent: 'soa-110-scom2',xmlurl:'scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2-codeinfo-health':{id: 'soa-110-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-110-scom2',xmlurl:'scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2-svninfo-health': {id: 'soa-110-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-110-scom2' ,xmlurl:'scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-110-scom2-aeminfo-health': {id: 'soa-110-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-110-scom2',xmlurl:'scom2-110.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
 
-	'soa014':						{id: 'soa014', name: 'soa014 (QA)', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa014-apache8':				{id: 'soa014-apache8', name: 'apache8',  parent: 'soa014', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa014-mysubaru':				{id: 'soa014-mysubaru', name: 'mysubaru', parent: 'soa014-apache8' , url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa014-mysubaru-health':		{id: 'soa014-mysubaru-health', name: 'health', parent: 'soa014-mysubaru', url:'/soa014-mysubaru-health',xmlurl:'http://www.qa.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109':						{id: 'soa-109', name: 'soa-109 (PROD)',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-apache1':				{id: 'soa-109-apache1', name: 'apache1',  parent: 'soa-109',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-apache1-health':		{id: 'soa-109-apache1-health', name: 'apache1 health',  parent: 'soa-109-apache1', xmlurl:'scom-109.prod.subaru.com/server-status', health:'grey',callHealthService:false},
+	'soa-109-webadmin':				{id: 'soa-109-webadmin', name: 'webadmin', parent: 'soa-109-apache1',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-webadmin-health':		{id: 'soa-109-webadmin-health', name: 'health', parent: 'soa-109-webadmin', xmlurl:'webadmin.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-util':					{id: 'soa-109-util', name: 'util', parent: 'soa-109-apache1',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-util-health':			{id: 'soa-109-util-health', name: 'health', parent: 'soa-109-util' , xmlurl:'util.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-vip':					{id: 'soa-109-vip', name: 'vip', parent: 'soa-109-apache1' ,xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-vip-health':			{id: 'soa-109-vip-health', name: 'health', parent: 'soa-109-vip', xmlurl:'vip.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
 
-	'soa-117':						{id: 'soa-117', name: 'soa-117 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-117-apache8':				{id: 'soa-117-apache8', name: 'apache8',  parent: 'soa-117', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-117-mysubaru':				{id: 'soa-117-mysubaru', name: 'mysubaru', parent: 'soa-117-apache8', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-117-mysubaru-health':		{id: 'soa-117-mysubaru-health', name: 'health', parent: 'soa-117-mysubaru' , url:'/soa-117-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
 
-	'soa-118':						{id: 'soa-118', name: 'soa-118 (PROD)', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-118-apache8':				{id: 'soa-118-apache8', name: 'apache8',  parent: 'soa-118', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-118-mysubaru':				{id: 'soa-118-mysubaru', name: 'mysubaru', parent: 'soa-118-apache8', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-118-mysubaru-health':		{id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru', url:'/soa-118-mysubaru-health',xmlurl:'http://preprod.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-apache6':				{id: 'soa-109-apache6',		   name: 'apache6',			parent: 'soa-109', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-apache6-health':		{id: 'soa-109-apache6-health', name: 'apache6 health',  parent: 'soa-109-apache6', xmlurl:'scom-109.prod.subaru.com/server-status', health:'grey',callHealthService:false},
+	'soa-109-scom':					{id: 'soa-109-scom', name: 'scom',  parent: 'soa-109-apache6',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-scom-health':			{id: 'soa-109-scom-health', name: 'health',  parent: 'soa-109-scom' ,xmlurl:'scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-scom-services-health': {id: 'soa-109-scom-services-health', name: 'services health',  parent: 'soa-109-scom' ,xmlurl:'scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom-codeinfo-health': {id: 'soa-109-scom-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom',xmlurl:'scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom-svninfo-health':  {id: 'soa-109-scom-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom' ,xmlurl:'scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom-aeminfo-health':  {id: 'soa-109-scom-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom',xmlurl:'scom-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom2':				{id: 'soa-109-scom2', name: 'scom2', parent: 'soa-109-apache6',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-scom2-health':			{id: 'soa-109-scom2-health', name: 'health',  parent: 'soa-109-scom2', xmlurl:'scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-109-scom2-services-health':{id: 'soa-109-scom2-services-health', name: 'services health',  parent: 'soa-109-scom2' ,xmlurl:'scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom2-codeinfo-health':{id: 'soa-109-scom2-codeinfo-health', name: 'codeinfo',  parent: 'soa-109-scom2',xmlurl:'scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom2-svninfo-health': {id: 'soa-109-scom2-svninfo-health', name: 'svninfo',  parent: 'soa-109-scom2',xmlurl:'scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
+	'soa-109-scom2-aeminfo-health': {id: 'soa-109-scom2-aeminfo-health', name: 'aeminfo',  parent: 'soa-109-scom2',xmlurl:'scom2-109.prod.subaru.com/health/report.xml', health:'grey',callHealthService:false},
 
-	'soa050':						{id: 'soa050', name: 'soa050 (QA)', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa050-apache1':				{id: 'soa050-apache1', name: 'apache1',  parent: 'soa050', url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa050-webadmin':				{id: 'soa050-webadmin', name: 'webadmin', parent: 'soa050-apache1' , url:'',xmlurl:'',health:'grey',callHealthService:false},
-	'soa050-webadmin-health':		{id: 'soa050-webadmin-health', name: 'health', parent: 'soa050-webadmin', url:'/soa050-webadmin-health',xmlurl:'http://webadmin.qa.subarunet.com/health/report.xml', health:'grey',callHealthService:true}
+	'soa014':						{id: 'soa014', name: 'soa014 (QA)',xmlurl:'',health:'grey',callHealthService:false},
+	'soa014-apache8':				{id: 'soa014-apache8', name: 'apache8',  parent: 'soa014',xmlurl:'',health:'grey',callHealthService:false},
+	'soa014-mysubaru':				{id: 'soa014-mysubaru', name: 'mysubaru', parent: 'soa014-apache8' ,xmlurl:'',health:'grey',callHealthService:false},
+	'soa014-mysubaru-health':		{id: 'soa014-mysubaru-health', name: 'health', parent: 'soa014-mysubaru', xmlurl:'www.qa.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+
+	'soa-117':						{id: 'soa-117', name: 'soa-117 (PROD)',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-117-apache8':				{id: 'soa-117-apache8', name: 'apache8',  parent: 'soa-117',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-117-mysubaru':				{id: 'soa-117-mysubaru', name: 'mysubaru', parent: 'soa-117-apache8',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-117-mysubaru-health':		{id: 'soa-117-mysubaru-health', name: 'health', parent: 'soa-117-mysubaru' , xmlurl:'preprod.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+
+	'soa-118':						{id: 'soa-118', name: 'soa-118 (PROD)',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-118-apache8':				{id: 'soa-118-apache8', name: 'apache8',  parent: 'soa-118',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-118-mysubaru':				{id: 'soa-118-mysubaru', name: 'mysubaru', parent: 'soa-118-apache8',xmlurl:'',health:'grey',callHealthService:false},
+	'soa-118-mysubaru-health':		{id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru', xmlurl:'preprod.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+
+	'soa050':						{id: 'soa050', name: 'soa050 (QA)',xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-apache1':				{id: 'soa050-apache1', name: 'apache1',  parent: 'soa050',xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-webadmin':				{id: 'soa050-webadmin', name: 'webadmin', parent: 'soa050-apache1' ,xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-webadmin-health':		{id: 'soa050-webadmin-health', name: 'health', parent: 'soa050-webadmin', xmlurl:'webadmin.qa.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa050-mysubaru-webadmin':		{id: 'soa050-mysubaru-webadmin', name: 'mysubaru webadmin', parent: 'soa050-apache1' ,xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-mysubaru-webadmin-health':	{id: 'soa050-mysubaru-webadmin-health', name: 'health', parent: 'soa050-mysubaru-webadmin', xmlurl:'webadmin.qa.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa050-impact':				{id: 'soa050-impact', name: 'impact', parent: 'soa050-apache1' ,xmlurl:'',health:'grey',callHealthService:false},
+	'soa050-impact-health':			{id: 'soa050-impact-health', name: 'health', parent: 'soa050-impact', xmlurl:'impact.qa.subaru.com/health/report.xml', health:'grey',callHealthService:true}
 	}
 
 
@@ -249,7 +257,11 @@ var cy = cytoscape({
       { data: scom_nodes['soa050'] },
       { data: scom_nodes['soa050-apache1'] },
       { data: scom_nodes['soa050-webadmin'] },
-      { data: scom_nodes['soa050-webadmin-health']  }
+      { data: scom_nodes['soa050-webadmin-health']  },
+      { data: scom_nodes['soa050-mysubaru-webadmin'] },
+      { data: scom_nodes['soa050-mysubaru-webadmin-health']  },
+      { data: scom_nodes['soa050-impact'] },
+      { data: scom_nodes['soa050-impact-health']  }
     ]
   },
   layout: {
@@ -306,7 +318,7 @@ cy.nodes("*").on('tap', function(e){
  	if (scom_nodes[ele.id()].xmlurl && ele.id().indexOf("health") > -1)
  	{
 		logMessage("loading " + scom_nodes[ele.id()].xmlurl)
-		scom_nodes[ele.id()].window = window.open(scom_nodes[ele.id()].xmlurl);
+		scom_nodes[ele.id()].window = window.open("http://"+scom_nodes[ele.id()].xmlurl);
 		//logMessage("loaded " + scom_nodes[ele.id()].xmlurl)
  	}
 });
@@ -474,7 +486,6 @@ cy.nodes().forEach(function( ele ){
 	scomdashboardService='http://soa040.subaru1.com:3000';
 	//scomdashboardService='http://L60001073JRIN:3000';
 	//scomdashboardService='http://localhost:3000';
-
     //skip nodes we don't want to make health checks on
 	setNode(ele.id(),null);
     if (scom_nodes[ele.id()].callHealthService)
@@ -483,7 +494,7 @@ cy.nodes().forEach(function( ele ){
 
 		$.ajax({
 		  type: 'GET',
-		  url: scomdashboardService+scom_nodes[ele.id()].url,
+		  url: scomdashboardService + "/"+ encodeURIComponent(scom_nodes[ele.id()].xmlurl),
 		  contentType: 'text/plain',
 	  	  dataType: 'json',
 	  	  timeout: 10000,

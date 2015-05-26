@@ -24,30 +24,6 @@ var winston = new (winston.Logger)({
     ]
 });
 
-//can i remove items with urls ?
-var scom_urls = {
-	'originhealth': 			{url:'http://origin-www.subaru.com/health/report.xml',health:'grey'},
-	'soa-110-health':			{url:'http://scom-110.prod.subaru.com/server-status',health:'grey'},
-	'soa-110-webadmin-health':	{url:'http://webadmin.subarunet.com/health/report.xml',health:'grey'},
-	'soa-110-util-health':		{url:'http://util.subarunet.com/health/report.xml',health:'grey'},
-	'soa-110-vip-health':		{url:'http://vip.subarunet.com/health/report.xml',health:'grey'},
-
-	'soa-110-scom-health':		{url:'http://scom-110.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-110-scom2-health':		{url:'http://scom2-110.prod.subaru.com/health/report.xml',health:'grey'},
-
-	'soa-109-health':			{url:'http://scom-109.prod.subaru.com/server-status',health:'grey'},
-	'soa-109-webadmin-health':	{url:'http://webadmin.subarunet.com/health/report.xml',health:'grey'},
-	'soa-109-util-health':		{url:'http://util.subarunet.com/health/report.xml',health:'grey'},
-	'soa-109-vip-health':		{url:'http://vip.subarunet.com/health/report.xml',health:'grey'},
-
-	'soa-109-scom-health':		{url:'http://scom-109.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa-109-scom2-health':		{url:'http://scom2-109.prod.subaru.com/health/report.xml',health:'grey'},
-	'soa014-mysubaru-health':	{url:'http://www.qa.mysubaru.com/health/report.xml',health:'grey'},
-	'soa-117-mysubaru-health':	{url:'http://preprod.mysubaru.com/health/report.xml',health:'grey'},
-	'soa-118-mysubaru-health':	{url:'http://preprod.mysubaru.com/health/report.xml',health:'grey'},
-	'soa050-webadmin-health':	{url:'http://webadmin.qa.subarunet.com/health/report.xml',health:'grey'}
-	};
-
 
 /**
  * Create app.
@@ -63,7 +39,6 @@ var server = http.createServer(app);
 //http://L60001073JRIN:3000/SCOMDashboard.html
 //http://soa040.subaru1.com:3000/SCOMDashboard.html
 //links above work in all browsers except chrome ? and ie which is ok
-//app.use(express.static('public'));
 app.use(express.static(__dirname + '/public'));
 
 app.all('*', function(req, res, next) {
@@ -81,14 +56,6 @@ app.get('/', function (req, res) {
     res.end([' SCOMDashboard id=[id] idRespType=[xml]  reponsetype=[json]'].join(''));
 });
 
-/*
-app.get('/SCOMDashboard.html', function (req, res) {
-    winston.info('/SCOMDashboard requesting url='+req.url);
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.sendFile('SCOMDashboard.html');
-    res.end();
-});
-*/
 
 app.get('/favicon.ico', function (req, res){
     winston.info('app.get /favicon requesting url='+req.url);
@@ -97,37 +64,26 @@ app.get('/favicon.ico', function (req, res){
 });
 
 
-app.get('/:id/:idRespType?/:respType?', function (req, res) {
+app.get('/:xmlurl', function (req, res) {
     winston.info('app.get healthcheck requesting url='+req.url);
-	if (!req.params.id)
-	{
-		req.params.id = "originhealth";
-	}
-    winston.info('req.params.id='+req.params.id);
 
-	if (!req.params.idRespType)
+	if (!req.params.xmlurl)
 	{
-		req.params.idRespType = "xml";
+		req.params.xmlurl = "empty";
 	}
-    winston.info('req.params.idRespType='+req.params.idRespType);
-
-	if (!req.params.respType)
-	{
-		req.params.respType = "json";
-	}
-    winston.info('req.params.respType='+req.params.respType);
+    winston.info('req.params.xmlurl='+req.params.xmlurl);
 
 	res.type('json');
-	sendScomJson(req.params.id,res);
+	sendScomJson(req.params.xmlurl,res);
 });
 
 
-var sendScomJson = function(id,respJson)
+var sendScomJson = function(xmlurl,respJson)
 {
 		var result = "";
 		var jsonObj = {};
 
-		if (typeof id === 'undefined' || typeof scom_urls[id] == 'undefined' || !scom_urls[id].url )
+		if (typeof xmlurl === 'undefined' || typeof xmlurl == 'undefined'  )
 		{
 			respJson.json(jsonObj);
 		    winston.info('skipping ...');
@@ -135,9 +91,10 @@ var sendScomJson = function(id,respJson)
 		}
 
 		//call url to get xml
-	    winston.info('id.url='+scom_urls[id].url);
+		xmlurl = 'http://'+xmlurl;
+	    winston.info('xmlurl='+xmlurl);
 
-	    http.get(scom_urls[id].url, function(res) {
+	    http.get(xmlurl, function(res) {
 		  res.on("data", function(chunk) {
 			  result += chunk;
   		  });
