@@ -116,7 +116,7 @@ var sendScomJson = function(xmlurl,respJson)
 							winston.info('converting xml ...');
 							//result = result.substring(result.indexOf("<status"),result.length);
 							//winston.info('response result='+result);
-							jsonObj = XMLMapping.load(result,{ throwErrors : true });
+							jsonObj = XMLMapping.load(result,{ throwErrors : false });
 							if (jsonObj)
 							{
 							  winston.info("jsonObj: " +JSON.stringify(jsonObj), null, " ");
