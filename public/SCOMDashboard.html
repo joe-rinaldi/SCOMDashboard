@@ -3,9 +3,8 @@
 <!--
 
 ToDO
-	x add mysubaru and impact to QA
-	x remove health check array from nodejs server, just calls passed in xml url
-	- add mysubaru and impact to PROD
+	x add mysubaru, webadmin and impact to PROD
+
 	- create dashboard for scom qa
 	- add database check for mysubaru nodes
 	- add apache nodes for the following
@@ -21,7 +20,6 @@ ToDO
 
 		Currently using
 		http://js.cytoscape.org/#demos
-
 		Misc dev links
 		http://jointjs.com/demos
 		http://www.graphdracula.net/showcase/
@@ -74,6 +72,10 @@ var scom_nodes = {
 	'soa-110-util-health':			{id: 'soa-110-util-health', name: 'health', parent: 'soa-110-util', xmlurl:'util.subarunet.com/health/report.xml', health:'grey', callHealthService:true},
 	'soa-110-vip':					{id: 'soa-110-vip', 		name: 'vip', 	parent: 'soa-110-apache1',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-110-vip-health':			{id: 'soa-110-vip-health', 	name: 'health', parent: 'soa-110-vip', xmlurl:'vip.subarunet.com/health/report.xml', health:'grey', callHealthService:true},
+  'soa-110-impact':				             {id: 'soa-110-impact', 		name: 'impact', parent: 'soa-110-apache1', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-impact-health':		         {id: 'soa-110-impact-health', name: 'health', parent: 'soa-110-impact' , xmlurl:'impact.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+  'soa-110-mysubaru-webadmin':				 {id: 'soa-110-mysubaru-webadmin', 		name: 'mysubaru webadmin', parent: 'soa-110-apache1', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-110-mysubaru-webadmin-health':	 {id: 'soa-110-mysubaru-webadmin-health', name: 'health', parent: 'soa-110-mysubaru-webadmin' , xmlurl:'webadmin.subaru.com/health/report.xml', health:'grey',callHealthService:true},
 
 
 	'soa-110-apache6':				{id: 'soa-110-apache6',		   name: 'apache6',			parent: 'soa-110', xmlurl:'',health:'grey',callHealthService:false},
@@ -100,6 +102,10 @@ var scom_nodes = {
 	'soa-109-util-health':			{id: 'soa-109-util-health', name: 'health', parent: 'soa-109-util' , xmlurl:'util.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
 	'soa-109-vip':					{id: 'soa-109-vip', name: 'vip', parent: 'soa-109-apache1' ,xmlurl:'',health:'grey',callHealthService:false},
 	'soa-109-vip-health':			{id: 'soa-109-vip-health', name: 'health', parent: 'soa-109-vip', xmlurl:'vip.subarunet.com/health/report.xml', health:'grey',callHealthService:true},
+  'soa-109-impact':				             {id: 'soa-109-impact', 		name: 'impact', parent: 'soa-109-apache1', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-impact-health':		         {id: 'soa-109-impact-health', name: 'health', parent: 'soa-109-impact' , xmlurl:'impact.subaru.com/health/report.xml', health:'grey',callHealthService:true},
+  'soa-109-mysubaru-webadmin':				 {id: 'soa-109-mysubaru-webadmin', 		name: 'mysubaru webadmin', parent: 'soa-109-apache1', xmlurl:'',health:'grey',callHealthService:false},
+	'soa-109-mysubaru-webadmin-health':	 {id: 'soa-109-mysubaru-webadmin-health', name: 'health', parent: 'soa-109-mysubaru-webadmin' , xmlurl:'webadmin.subaru.com/health/report.xml', health:'grey',callHealthService:true},
 
 
 	'soa-109-apache6':				{id: 'soa-109-apache6',		   name: 'apache6',			parent: 'soa-109', xmlurl:'',health:'grey',callHealthService:false},
@@ -125,12 +131,12 @@ var scom_nodes = {
 	'soa-117':						{id: 'soa-117', name: 'soa-117 (PROD)',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-117-apache8':				{id: 'soa-117-apache8', name: 'apache8',  parent: 'soa-117',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-117-mysubaru':				{id: 'soa-117-mysubaru', name: 'mysubaru', parent: 'soa-117-apache8',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-117-mysubaru-health':		{id: 'soa-117-mysubaru-health', name: 'health', parent: 'soa-117-mysubaru' , xmlurl:'preprod.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-117-mysubaru-health':		{id: 'soa-117-mysubaru-health', name: 'health', parent: 'soa-117-mysubaru' , xmlurl:'www.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
 
 	'soa-118':						{id: 'soa-118', name: 'soa-118 (PROD)',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-118-apache8':				{id: 'soa-118-apache8', name: 'apache8',  parent: 'soa-118',xmlurl:'',health:'grey',callHealthService:false},
 	'soa-118-mysubaru':				{id: 'soa-118-mysubaru', name: 'mysubaru', parent: 'soa-118-apache8',xmlurl:'',health:'grey',callHealthService:false},
-	'soa-118-mysubaru-health':		{id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru', xmlurl:'preprod.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
+	'soa-118-mysubaru-health':		{id: 'soa-118-mysubaru-health', name: 'health', parent: 'soa-118-mysubaru', xmlurl:'www.mysubaru.com/health/report.xml', health:'grey',callHealthService:true},
 
 	'soa050':						{id: 'soa050', name: 'soa050 (QA)',xmlurl:'',health:'grey',callHealthService:false},
 	'soa050-apache1':				{id: 'soa050-apache1', name: 'apache1',  parent: 'soa050',xmlurl:'',health:'grey',callHealthService:false},
@@ -195,6 +201,11 @@ var cy = cytoscape({
       { data: scom_nodes['soa-110-util-health']},
       { data: scom_nodes['soa-110-vip'] },
       { data: scom_nodes['soa-110-vip-health']},
+      { data: scom_nodes['soa-110-impact'] },
+      { data: scom_nodes['soa-110-impact-health']},
+      { data: scom_nodes['soa-110-mysubaru-webadmin'] },
+      { data: scom_nodes['soa-110-mysubaru-webadmin-health']},
+
 
       { data: scom_nodes['soa-110-apache6']},
       { data: scom_nodes['soa-110-apache6-health']},
@@ -224,6 +235,11 @@ var cy = cytoscape({
       { data: scom_nodes['soa-109-util-health'] },
       { data: scom_nodes['soa-109-vip'] },
       { data: scom_nodes['soa-109-vip-health'] },
+      { data: scom_nodes['soa-109-impact'] },
+      { data: scom_nodes['soa-109-impact-health']},
+      { data: scom_nodes['soa-109-mysubaru-webadmin'] },
+      { data: scom_nodes['soa-109-mysubaru-webadmin-health']},
+
 
       { data: scom_nodes['soa-109-scom'] },
       { data: scom_nodes['soa-109-scom-health'] },
